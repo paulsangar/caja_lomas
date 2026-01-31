@@ -1,13 +1,21 @@
 # Configuración para Caja de Ahorro en HostGator
-DirectoryIndex index.html
+# Evita que WordPress intercepte esta carpeta
 
 <IfModule mod_rewrite.c>
   RewriteEngine On
-  # Esto asegura que si entras a una ruta que no existe, te mande al index.html de React
-  RewriteCond %{REQUEST_FILENAME} !-f
-  RewriteCond %{REQUEST_FILENAME} !-d
-  RewriteRule . index.html [L]
+  RewriteBase /caja/
+  
+  # Si el archivo o carpeta existe, servirlo directamente
+  RewriteCond %{REQUEST_FILENAME} -f [OR]
+  RewriteCond %{REQUEST_FILENAME} -d
+  RewriteRule ^ - [L]
+  
+  # Si no existe, mandar todo al index.html (para React)
+  RewriteRule ^ index.html [L]
 </IfModule>
+
+# Asegurar que reconozca el index
+DirectoryIndex index.html
 
 # Impedir listado de directorios
 Options -Indexes
