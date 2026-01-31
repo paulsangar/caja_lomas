@@ -1,0 +1,45 @@
+<?php
+header('Content-Type: application/json');
+require_once __DIR__ . '/config/db.php';
+
+try {
+    $stats = [];
+
+    // Saldo Total
+    $stmt = $pdo->query("SELECT SUM(saldo_total) as total FROM socios");
+    $stats['saldo_total'] = (float) $stmt->fetch()['total'] ?? 0;
+
+    // Total Socios
+    $stmt = $pdo->query("SELECT COUNT(*) as total FROM socios WHERE estatus = 'activo'");
+    $stats['total_socios'] = (int) $stmt->fetch()['total'];
+
+    // Préstamos Activos
+    $stmt = $pdo->query("SELECT COUNT(*) as total, SUM(saldo_pendiente) as monto FROM prestamos WHERE estatus = 'aprobado'");
+    $row = $stmt->fetch();
+    $stats['prestamos_activos'] = (int) $row['total'];
+    $stats['monto_prestamos'] = (float) $row['monto'] ?? 0;
+
+    // Últimos movimientos
+    $stmt = $pdo->query("
+        SELECT m.*, u.nombre_completo 
+        FROM movimientos m 
+        JOIN socios s ON m.socio_id = s.id 
+        JOIN usuarios u ON s.usuario_id = u.id 
+        ORDER BY m.fecha_operacion DESC 
+        LIMIT 5
+    ");
+    $stats['recientes'] = $stmt->fetchAll();
+
+    // Avisos
+    $stmt = $pdo->query("SELECT * FROM avisos ORDER BY fecha_publicacion DESC LIMIT 5");
+    $stats['avisos'] = $stmt->fetchAll();
+
+    echo json_encode([
+        'success' => true,
+        'data' => $stats
+    ]);
+
+} catch (PDOException $e) {
+    http_response_code(500);
+    echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+}
