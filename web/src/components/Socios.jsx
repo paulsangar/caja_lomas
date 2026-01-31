@@ -148,13 +148,14 @@ const Socios = () => {
                                         </td>
                                         <td style={{ padding: '15px 20px', textAlign: 'center' }}>
                                             <button
+                                                onClick={() => alert(`Detalles del socio:\n\nBanco: ${socio.banco}\nCuenta: ${socio.numero_cuenta}\nNacimiento: ${socio.fecha_nacimiento}\nTeléfono: ${socio.telefono}`)}
                                                 title="Ver detalle completo"
                                                 style={{
                                                     background: 'white',
                                                     border: '1px solid var(--border)',
                                                     padding: '6px',
                                                     borderRadius: '6px',
-                                                    color: 'var(--text-muted)',
+                                                    color: 'var(--primary)',
                                                     cursor: 'pointer',
                                                     boxShadow: '0 1px 2px rgba(0,0,0,0.05)'
                                                 }}
