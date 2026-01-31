@@ -23,21 +23,23 @@ jobs:
           cd web
           npm install
           npm run build
+          cp .htaccess dist/
 
-      - name: Deploy Frontend (dist)
+      - name: Deploy All to HostGator
         uses: SamKirkland/FTP-Deploy-Action@v4.3.4
         with:
           server: ${{ secrets.FTP_SERVER }}
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
-          local-dir: ./web/dist/
+          local-dir: ./
           server-dir: ./public_html/caja/
-
-      - name: Deploy Backend (api)
-        uses: SamKirkland/FTP-Deploy-Action@v4.3.4
-        with:
-          server: ${{ secrets.FTP_SERVER }}
-          username: ${{ secrets.FTP_USERNAME }}
-          password: ${{ secrets.FTP_PASSWORD }}
-          local-dir: ./api/
-          server-dir: ./public_html/caja/api/
+          exclude: |
+            **/.git*
+            **/.github*
+            web/**
+            !web/dist/**
+            node_modules/**
+            src/**
+            package.json
+            package-lock.json
+            api/config/db.php

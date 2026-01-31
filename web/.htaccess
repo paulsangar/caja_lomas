@@ -1,0 +1,13 @@
+# Configuración para Caja de Ahorro en HostGator
+DirectoryIndex index.html
+
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  # Esto asegura que si entras a una ruta que no existe, te mande al index.html de React
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteRule . index.html [L]
+</IfModule>
+
+# Impedir listado de directorios
+Options -Indexes
