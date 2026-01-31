@@ -24,20 +24,20 @@ jobs:
           npm install
           npm run build
 
-      - name: Deploy to HostGator (FTP)
+      - name: Deploy Frontend (dist)
         uses: SamKirkland/FTP-Deploy-Action@v4.3.4
         with:
           server: ${{ secrets.FTP_SERVER }}
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
-          local-dir: ./ # Despliega todo el repo (incluyendo api y web/dist)
+          local-dir: ./web/dist/
           server-dir: ./public_html/caja/
-          exclude: |
-            **/.git*
-            **/.github*
-            web/node_modules/**
-            web/src/**
-            web/public/**
-            web/package.json
-            web/package-lock.json
-            web/vite.config.js
+
+      - name: Deploy Backend (api)
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.4
+        with:
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          local-dir: ./api/
+          server-dir: ./public_html/caja/api/
