@@ -3,19 +3,18 @@ name: FTP Deploy
 on:
   push:
     branches:
-      - main          # si tu rama principal se llama distinto, cámbiala aquí
-  workflow_dispatch:  # para poder lanzarlo manualmente desde Actions
+      - main          # deja 'main', ya vimos que tu rama se llama así
+  workflow_dispatch:
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkoutrepo
-      - uses: actions/checkout@v4
+      - name: Checkout repo
+        uses: actions/checkout@v4
 
-      # Si necesitas compilar (React, Vite, etc.), aquí irían los comandos de build.
-      # Por ejemplo:
+      # Si necesitas compilar tu proyecto, aquí irían los comandos de build.
       # - name: Build project
       #   run: |
       #     npm install
@@ -28,4 +27,5 @@ jobs:
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
           protocol: ftp
-          local-dir: ./dist    # CAMBIA 'dist' por la carpeta que quie
+          local-dir: ./        # CAMBIA esto si quieres subir otra carpeta (ej: ./dist)
+          server-dir: /        # CAMBIA esto si tu hosting usa /public_html o similar
