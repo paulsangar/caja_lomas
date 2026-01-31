@@ -7,6 +7,7 @@ const Socios = () => {
     const [loading, setLoading] = useState(true);
     const [showForm, setShowForm] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
+    const [sortConfig, setSortConfig] = useState({ key: 'numero_socio', direction: 'asc' });
 
     const fetchSocios = async () => {
         setLoading(true);
@@ -27,10 +28,33 @@ const Socios = () => {
         fetchSocios();
     }, []);
 
-    const filteredSocios = socios.filter(s =>
+    const handleSort = (key) => {
+        let direction = 'asc';
+        if (sortConfig.key === key && sortConfig.direction === 'asc') {
+            direction = 'desc';
+        }
+        setSortConfig({ key, direction });
+    };
+
+    const sortedSocios = [...socios].sort((a, b) => {
+        if (a[sortConfig.key] < b[sortConfig.key]) {
+            return sortConfig.direction === 'asc' ? -1 : 1;
+        }
+        if (a[sortConfig.key] > b[sortConfig.key]) {
+            return sortConfig.direction === 'asc' ? 1 : -1;
+        }
+        return 0;
+    });
+
+    const filteredSocios = sortedSocios.filter(s =>
         s.nombre_completo.toLowerCase().includes(searchTerm.toLowerCase()) ||
         s.numero_socio.includes(searchTerm)
     );
+
+    const SortIcon = ({ columnKey }) => {
+        if (sortConfig.key !== columnKey) return null;
+        return <span style={{ fontSize: '0.8em', marginLeft: '5px' }}>{sortConfig.direction === 'asc' ? '▲' : '▼'}</span>;
+    };
 
     return (
         <div className="animate-fade-in">
@@ -38,21 +62,21 @@ const Socios = () => {
                 display: 'flex',
                 justifyContent: 'space-between',
                 alignItems: 'center',
-                marginBottom: '30px'
+                marginBottom: '20px'
             }}>
-                <h2 style={{ fontSize: '1.5rem' }}>Gestión de Socios</h2>
+                <h2 style={{ fontSize: '1.5rem', color: 'var(--primary-dark)' }}>Gestión de Socios</h2>
                 <button className="btn-primary" onClick={() => setShowForm(true)}>
                     <UserPlus size={18} /> Nuevo Socio
                 </button>
             </div>
 
             <div className="glass-panel" style={{ padding: '0', overflow: 'hidden' }}>
-                <div style={{ padding: '20px', borderBottom: '1px solid var(--border)', display: 'flex', gap: '15px', background: '#f8fafc' }}>
-                    <div style={{ position: 'relative', flex: 1 }}>
+                <div style={{ padding: '15px 20px', borderBottom: '1px solid var(--border)', display: 'flex', gap: '15px', background: '#f8fafc' }}>
+                    <div style={{ position: 'relative', flex: 1, maxWidth: '400px' }}>
                         <Search size={18} style={{ position: 'absolute', left: '12px', top: '10px', color: 'var(--text-muted)' }} />
                         <input
                             type="text"
-                            placeholder="Buscar por nombre o número de socio..."
+                            placeholder="Buscar por nombre o ID..."
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                             style={{
@@ -72,50 +96,70 @@ const Socios = () => {
                     <table>
                         <thead>
                             <tr>
-                                <th style={{ padding: '15px 20px' }}># Socio</th>
-                                <th style={{ padding: '15px 20px' }}>Nombre</th>
-                                <th style={{ padding: '15px 20px' }}>Estatus</th>
-                                <th style={{ padding: '15px 20px' }}>Saldo Ahorro</th>
-                                <th style={{ padding: '15px 20px' }}>Acciones</th>
+                                <th onClick={() => handleSort('numero_socio')} style={{ cursor: 'pointer' }}>ID <SortIcon columnKey="numero_socio" /></th>
+                                <th onClick={() => handleSort('nombre_completo')} style={{ cursor: 'pointer' }}>Nombre y Detalles <SortIcon columnKey="nombre_completo" /></th>
+                                <th onClick={() => handleSort('fecha_ingreso')} style={{ cursor: 'pointer' }}>Desde <SortIcon columnKey="fecha_ingreso" /></th>
+                                <th onClick={() => handleSort('cupos')} style={{ cursor: 'pointer' }}>Cupos <SortIcon columnKey="cupos" /></th>
+                                <th onClick={() => handleSort('saldo_total')} style={{ cursor: 'pointer' }}>Ahorro Total <SortIcon columnKey="saldo_total" /></th>
+                                <th style={{ textAlign: 'center' }}>Acciones</th>
                             </tr>
                         </thead>
                         <tbody>
                             {loading ? (
                                 <tr>
-                                    <td colSpan="5" style={{ padding: '40px', textAlign: 'center' }}>Cargando socios...</td>
+                                    <td colSpan="6" style={{ padding: '40px', textAlign: 'center' }}>Cargando socios...</td>
                                 </tr>
                             ) : filteredSocios.length === 0 ? (
                                 <tr>
-                                    <td colSpan="5" style={{ padding: '40px', textAlign: 'center', color: 'var(--text-muted)' }}>
+                                    <td colSpan="6" style={{ padding: '40px', textAlign: 'center', color: 'var(--text-muted)' }}>
                                         No se encontraron socios registrados.
                                     </td>
                                 </tr>
                             ) : (
                                 filteredSocios.map(socio => (
                                     <tr key={socio.id} className="table-row-hover">
-                                        <td style={{ padding: '15px 20px', fontWeight: 'bold', color: 'var(--primary)' }}>{socio.numero_socio}</td>
+                                        <td style={{ padding: '15px 20px', fontWeight: 'bold', color: 'var(--primary)' }}>
+                                            {socio.numero_socio}
+                                        </td>
                                         <td style={{ padding: '15px 20px' }}>
-                                            <div style={{ fontWeight: '500' }}>{socio.nombre_completo}</div>
-                                            <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{socio.email || 'Sin correo'}</div>
+                                            <div style={{ fontWeight: '600', color: 'var(--text-main)' }}>{socio.nombre_completo}</div>
+                                            <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', display: 'flex', gap: '10px', marginTop: '4px' }}>
+                                                {socio.telefono && <span>📞 {socio.telefono}</span>}
+                                                {socio.banco && <span>🏦 {socio.banco}</span>}
+                                            </div>
+                                        </td>
+                                        <td style={{ padding: '15px 20px', fontSize: '0.9rem' }}>
+                                            {new Date(socio.fecha_ingreso).toLocaleDateString()}
                                         </td>
                                         <td style={{ padding: '15px 20px' }}>
                                             <span style={{
+                                                background: '#eff6ff',
+                                                color: 'var(--primary)',
                                                 padding: '4px 10px',
-                                                borderRadius: '20px',
-                                                fontSize: '0.75rem',
-                                                background: socio.estatus === 'activo' ? '#ecfdf5' : '#fef2f2',
-                                                color: socio.estatus === 'activo' ? 'var(--success)' : 'var(--danger)',
-                                                fontWeight: '600'
+                                                borderRadius: '12px',
+                                                fontWeight: '600',
+                                                fontSize: '0.85rem'
                                             }}>
-                                                {socio.estatus.toUpperCase()}
+                                                {socio.cupos || 1}
                                             </span>
                                         </td>
-                                        <td style={{ padding: '15px 20px', fontWeight: 'bold', color: 'var(--text-main)' }}>
+                                        <td style={{ padding: '15px 20px', fontWeight: 'bold', color: '#059669' }}>
                                             ${parseFloat(socio.saldo_total).toLocaleString('es-MX', { minimumFractionDigits: 2 })}
                                         </td>
-                                        <td style={{ padding: '15px 20px' }}>
-                                            <button style={{ background: 'transparent', border: 'none', color: 'var(--primary)', cursor: 'pointer' }}>
-                                                <ExternalLink size={18} />
+                                        <td style={{ padding: '15px 20px', textAlign: 'center' }}>
+                                            <button
+                                                title="Ver detalle completo"
+                                                style={{
+                                                    background: 'white',
+                                                    border: '1px solid var(--border)',
+                                                    padding: '6px',
+                                                    borderRadius: '6px',
+                                                    color: 'var(--text-muted)',
+                                                    cursor: 'pointer',
+                                                    boxShadow: '0 1px 2px rgba(0,0,0,0.05)'
+                                                }}
+                                            >
+                                                <MoreVertical size={16} />
                                             </button>
                                         </td>
                                     </tr>
