@@ -1,0 +1,31 @@
+name: FTP Deploy
+
+on:
+  push:
+    branches:
+      - main          # deja 'main', ya vimos que tu rama se llama así
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      # Si necesitas compilar tu proyecto, aquí irían los comandos de build.
+      # - name: Build project
+      #   run: |
+      #     npm install
+      #     npm run build
+
+      - name: FTP Deploy
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.6
+        with:
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          protocol: ftp
+          local-dir: ./        # CAMBIA esto si quieres subir otra carpeta (ej: ./dist)
+          server-dir: /        # CAMBIA esto si tu hosting usa /public_html o similar
