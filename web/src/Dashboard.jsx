@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { LogOut, Wallet, Users, Landmark, Bell, Home, ChevronRight, History, Calendar } from 'lucide-react';
+import { LogOut, Wallet, Users, Landmark, Bell, Home, ChevronRight, History, Calendar, Settings } from 'lucide-react';
 import Socios from './components/Socios';
 import Movimientos from './components/Movimientos';
 import Prestamos from './components/Prestamos';
 import AbonosSemanal from './components/AbonosSemanal';
+import AvisosConfig from './components/AvisosConfig';
 
 const Dashboard = ({ user, onLogout }) => {
     const [currentView, setCurrentView] = useState('home');
@@ -24,8 +25,8 @@ const Dashboard = ({ user, onLogout }) => {
             const data = await response.json();
             if (data.success) {
                 setStats(data.data);
-                // Mostrar avisos automáticamente si hay
-                if (data.data.avisos && data.data.avisos.length > 0) {
+                // Mostrar avisos SOLO si NO es admin
+                if (user.rol !== 'admin' && data.data.avisos && data.data.avisos.length > 0) {
                     setShowNotices(true);
                 }
             }
@@ -38,7 +39,7 @@ const Dashboard = ({ user, onLogout }) => {
 
     useEffect(() => {
         fetchStats();
-    }, []);
+    }, [user.rol]);
 
     const renderView = () => {
         switch (currentView) {
@@ -46,6 +47,7 @@ const Dashboard = ({ user, onLogout }) => {
             case 'movimientos': return <Movimientos />;
             case 'prestamos': return <Prestamos />;
             case 'abonos_semanal': return <AbonosSemanal />;
+            case 'config_avisos': return <AvisosConfig />;
             case 'home':
             default:
                 return (
@@ -115,7 +117,7 @@ const Dashboard = ({ user, onLogout }) => {
                             </div>
                         </div>
 
-                        {/* Notices Popup */}
+                        {/* Notices Popup (Only for Non-Admins) */}
                         {showNotices && (
                             <div className="modal-overlay" style={{
                                 position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
@@ -126,7 +128,7 @@ const Dashboard = ({ user, onLogout }) => {
                                     width: '100%', maxWidth: '450px', padding: '30px', position: 'relative'
                                 }}>
                                     <h3 style={{ marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
-                                        <Bell color="var(--warning)" size={24} /> Avisos y Notificaciones
+                                        <Bell color="var(--warning)" size={24} /> Avisos Importantes
                                     </h3>
                                     <div style={{ display: 'flex', flexDirection: 'column', gap: '15px', maxHeight: '60vh', overflowY: 'auto' }}>
                                         {stats.avisos.map(aviso => (
@@ -206,7 +208,8 @@ const Dashboard = ({ user, onLogout }) => {
                         { id: 'socios', icon: <Users size={20} />, label: 'Socios' },
                         { id: 'abonos_semanal', icon: <Calendar size={20} />, label: 'Abonos' },
                         { id: 'prestamos', icon: <Landmark size={20} />, label: 'Préstamos' },
-                        { id: 'movimientos', icon: <History size={20} />, label: 'Historial' }
+                        { id: 'movimientos', icon: <History size={20} />, label: 'Historial' },
+                        { id: 'config_avisos', icon: <Settings size={20} />, label: 'Config' }
                     ].map(item => (
                         <button
                             key={item.id}
