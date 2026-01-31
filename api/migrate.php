@@ -1,4 +1,5 @@
 <?php
+// Version 1.2 - Fixed MySQL compatibility
 header('Content-Type: text/plain');
 require_once __DIR__ . '/config/db.php';
 

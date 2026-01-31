@@ -164,6 +164,72 @@ td {
   }
 }
 
+/* Navigation & Headers */
+.main-nav::-webkit-scrollbar {
+  display: none;
+}
+
+.main-nav {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.nav-link {
+  color: var(--text-muted);
+  padding: 10px;
+  border-radius: 12px;
+  text-decoration: none;
+  font-size: 0.75rem;
+  font-weight: 600;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  transition: var(--transition);
+  background: transparent;
+  border: 1px solid transparent;
+  cursor: pointer;
+}
+
+.nav-link.active {
+  background: white;
+  color: var(--primary);
+  box-shadow: var(--shadow);
+  border-color: var(--border);
+}
+
+.nav-link:active {
+  transform: scale(0.95);
+}
+
+.logout-btn:hover {
+  background: #fee2e2 !important;
+  transform: scale(1.05);
+}
+
+/* Modal / Popups */
+.modal-overlay {
+  animation: fadeInOverlay 0.3s ease-out;
+}
+
+@keyframes fadeInOverlay {
+  from {
+    background: rgba(0, 0, 0, 0);
+  }
+
+  to {
+    background: rgba(0, 0, 0, 0.5);
+  }
+}
+
+@media (max-width: 768px) {
+  .glass-panel {
+    padding: 20px !important;
+    border-radius: 16px;
+  }
+}
+
 /* Animations */
 @keyframes fadeIn {
   from {

@@ -15,6 +15,7 @@ const Dashboard = ({ user, onLogout }) => {
         avisos: []
     });
     const [loading, setLoading] = useState(true);
+    const [showNotices, setShowNotices] = useState(false);
 
     const fetchStats = async () => {
         setLoading(true);
@@ -23,6 +24,10 @@ const Dashboard = ({ user, onLogout }) => {
             const data = await response.json();
             if (data.success) {
                 setStats(data.data);
+                // Mostrar avisos automáticamente si hay
+                if (data.data.avisos && data.data.avisos.length > 0) {
+                    setShowNotices(true);
+                }
             }
         } catch (error) {
             console.error('Error fetching stats:', error);
@@ -81,21 +86,21 @@ const Dashboard = ({ user, onLogout }) => {
                             </div>
                         </div>
 
-                        {/* Recent Activity & Notices */}
-                        <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '24px' }}>
+                        {/* Recent Activity */}
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '24px' }}>
                             <div className="glass-panel" style={{ padding: '24px' }}>
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
                                     <h3>Movimientos Recientes</h3>
-                                    <button onClick={() => setCurrentView('movimientos')} style={{ background: 'transparent', border: 'none', color: 'var(--primary-light)', fontSize: '0.85rem', cursor: 'pointer' }}>Ver todos</button>
+                                    <button onClick={() => setCurrentView('movimientos')} style={{ background: 'transparent', border: 'none', color: 'var(--primary)', fontSize: '0.85rem', fontWeight: '600', cursor: 'pointer' }}>Ver historial</button>
                                 </div>
                                 {stats.recientes.length === 0 ? (
-                                    <div style={{ padding: '40px', textAlign: 'center', background: 'rgba(255,255,255,0.02)', borderRadius: '12px' }}>
+                                    <div style={{ padding: '40px', textAlign: 'center', background: '#f8fafc', borderRadius: '12px' }}>
                                         <p style={{ color: 'var(--text-muted)' }}>No hay movimientos registrados.</p>
                                     </div>
                                 ) : (
                                     <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                                         {stats.recientes.map(m => (
-                                            <div key={m.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px', background: 'rgba(255,255,255,0.02)', borderRadius: '10px' }}>
+                                            <div key={m.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px', background: '#f8fafc', borderRadius: '10px' }}>
                                                 <div>
                                                     <div style={{ fontSize: '0.9rem', fontWeight: '500' }}>{m.nombre_completo}</div>
                                                     <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{m.tipo} - {new Date(m.fecha_operacion).toLocaleDateString()}</div>
@@ -108,27 +113,41 @@ const Dashboard = ({ user, onLogout }) => {
                                     </div>
                                 )}
                             </div>
+                        </div>
 
-                            <div className="glass-panel" style={{ padding: '24px' }}>
-                                <h3 style={{ marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                    <Bell size={20} color="var(--warning)" /> Avisos
-                                </h3>
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-                                    {stats.avisos.map(aviso => (
-                                        <div key={aviso.id} style={{
-                                            background: 'rgba(59, 130, 246, 0.05)',
-                                            padding: '15px',
-                                            borderRadius: '12px',
-                                            borderLeft: '3px solid var(--primary)'
-                                        }}>
-                                            <h4 style={{ fontSize: '0.9rem', marginBottom: '4px' }}>{aviso.titulo}</h4>
-                                            <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', lineHeight: '1.4' }}>{aviso.contenido}</p>
-                                        </div>
-                                    ))}
-                                    {stats.avisos.length === 0 && <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>No hay avisos pendientes.</p>}
+                        {/* Notices Popup */}
+                        {showNotices && (
+                            <div className="modal-overlay" style={{
+                                position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+                                background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center',
+                                justifyContent: 'center', zIndex: 2000, padding: '20px'
+                            }}>
+                                <div className="glass-panel animate-fade-in" style={{
+                                    width: '100%', maxWidth: '450px', padding: '30px', position: 'relative'
+                                }}>
+                                    <h3 style={{ marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                        <Bell color="var(--warning)" size={24} /> Avisos y Notificaciones
+                                    </h3>
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '15px', maxHeight: '60vh', overflowY: 'auto' }}>
+                                        {stats.avisos.map(aviso => (
+                                            <div key={aviso.id} style={{
+                                                background: '#f0f9ff', padding: '15px', borderRadius: '12px', borderLeft: '4px solid var(--primary-light)'
+                                            }}>
+                                                <h4 style={{ fontSize: '1rem', color: 'var(--primary)', marginBottom: '5px' }}>{aviso.titulo}</h4>
+                                                <p style={{ fontSize: '0.9rem', color: 'var(--text-main)', lineHeight: '1.4' }}>{aviso.contenido}</p>
+                                            </div>
+                                        ))}
+                                    </div>
+                                    <button
+                                        onClick={() => setShowNotices(false)}
+                                        className="btn-primary"
+                                        style={{ width: '100%', marginTop: '25px' }}
+                                    >
+                                        Entendido
+                                    </button>
                                 </div>
                             </div>
-                        </div>
+                        )}
                     </div>
                 );
         }
@@ -138,51 +157,76 @@ const Dashboard = ({ user, onLogout }) => {
         <div style={{ padding: '20px', maxWidth: '1300px', margin: '0 auto', minHeight: '100vh' }}>
             <header style={{
                 display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
+                flexDirection: 'column',
+                gap: '20px',
                 marginBottom: '30px',
-                padding: '20px 0'
+                padding: '10px 0'
             }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '30px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <div>
-                        <h1 style={{ fontSize: '1.4rem' }}>{user.nombre_completo}</h1>
-                        <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>Administrador del Sistema</p>
+                        <h1 style={{ fontSize: '1.1rem', marginBottom: '2px' }}>{user.nombre_completo}</h1>
+                        <span style={{
+                            background: '#eff6ff',
+                            color: 'var(--primary)',
+                            fontSize: '0.7rem',
+                            padding: '2px 8px',
+                            borderRadius: '12px',
+                            fontWeight: 'bold',
+                            textTransform: 'uppercase'
+                        }}>Administrador</span>
                     </div>
 
-                    <nav style={{ display: 'flex', gap: '8px', background: 'white', padding: '5px', borderRadius: '12px', border: '1px solid var(--border)' }}>
-                        {[
-                            { id: 'home', icon: <Home size={18} />, label: 'Inicio' },
-                            { id: 'socios', icon: <Users size={18} />, label: 'Socios' },
-                            { id: 'abonos_semanal', icon: <Calendar size={18} />, label: 'Abonos' },
-                            { id: 'prestamos', icon: <Landmark size={18} />, label: 'Préstamos' },
-                            { id: 'movimientos', icon: <History size={18} />, label: 'Historial' }
-                        ].map(item => (
-                            <button
-                                key={item.id}
-                                onClick={() => setCurrentView(item.id)}
-                                className={`nav-link ${currentView === item.id ? 'active' : ''}`}
-                                style={{ padding: '8px 12px' }}
-                            >
-                                {item.icon} <span className="nav-label">{item.label}</span>
-                            </button>
-                        ))}
-                    </nav>
+                    <button onClick={onLogout} style={{
+                        background: '#fef2f2',
+                        border: '1px solid #fee2e2',
+                        color: '#ef4444',
+                        width: '40px',
+                        height: '40px',
+                        borderRadius: '50%',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        transition: 'var(--transition)'
+                    }} title="Cerrar Sesión">
+                        <LogOut size={20} />
+                    </button>
                 </div>
 
-                <button onClick={onLogout} style={{
-                    background: 'rgba(239, 68, 68, 0.1)',
-                    border: '1px solid rgba(239, 68, 68, 0.2)',
-                    color: '#ef4444',
-                    padding: '8px 16px',
-                    borderRadius: '8px',
-                    cursor: 'pointer',
+                <nav className="main-nav" style={{
                     display: 'flex',
-                    alignItems: 'center',
-                    gap: '8px',
-                    fontSize: '0.9rem'
-                }} className="logout-btn">
-                    <LogOut size={18} /> Salir
-                </button>
+                    gap: '5px',
+                    overflowX: 'auto',
+                    padding: '5px',
+                    margin: '0 -5px',
+                    scrollSnapType: 'x mandatory'
+                }}>
+                    {[
+                        { id: 'home', icon: <Home size={20} />, label: 'Inicio' },
+                        { id: 'socios', icon: <Users size={20} />, label: 'Socios' },
+                        { id: 'abonos_semanal', icon: <Calendar size={20} />, label: 'Abonos' },
+                        { id: 'prestamos', icon: <Landmark size={20} />, label: 'Préstamos' },
+                        { id: 'movimientos', icon: <History size={20} />, label: 'Historial' }
+                    ].map(item => (
+                        <button
+                            key={item.id}
+                            onClick={() => setCurrentView(item.id)}
+                            className={`nav-link ${currentView === item.id ? 'active' : ''}`}
+                            style={{
+                                flex: '1',
+                                minWidth: '70px',
+                                flexDirection: 'column',
+                                gap: '4px',
+                                padding: '10px 5px',
+                                fontSize: '0.75rem',
+                                borderRadius: '10px'
+                            }}
+                        >
+                            {item.icon}
+                            <span>{item.label}</span>
+                        </button>
+                    ))}
+                </nav>
             </header>
 
             <main>{renderView()}</main>
