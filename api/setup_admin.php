@@ -4,7 +4,15 @@
  * EJECUTAR UNA SOLA VEZ
  */
 
-require_once './config/db.php';
+// Forzar visualización de errores para diagnóstico
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+
+echo "Iniciando proceso de creación de administrador...<br>";
+
+// Usar ruta absoluta para evitar errores de inclusión
+require_once __DIR__ . '/config/db.php';
 
 $username = 'admin';
 $password = 'CajaLomas2026!'; // Se recomienda cambiar esto después
