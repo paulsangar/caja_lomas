@@ -26,9 +26,11 @@ const Movimientos = () => {
     }, []);
 
     const filtered = movimientos.filter(m =>
-        m.socio_nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        m.numero_socio.includes(searchTerm) ||
-        m.tipo.includes(searchTerm)
+        m.tipo !== 'aportacion' && ( // Excluir aportaciones por defecto
+            m.socio_nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            m.numero_socio.includes(searchTerm) ||
+            m.tipo.includes(searchTerm)
+        )
     );
 
     return (

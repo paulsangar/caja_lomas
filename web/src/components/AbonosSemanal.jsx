@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Calendar, Check, X, AlertCircle, Save, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Calendar, Check, AlertCircle, ChevronLeft, ChevronRight, DollarSign } from 'lucide-react';
 
 const AbonosSemanal = () => {
     const [socios, setSocios] = useState([]);
@@ -7,6 +7,9 @@ const AbonosSemanal = () => {
     const [loading, setLoading] = useState(true);
     const [mes, setMes] = useState(new Date().getMonth());
     const [anio, setAnio] = useState(new Date().getFullYear());
+
+    // Batch Payment State
+    const [selectedPayments, setSelectedPayments] = useState([]);
 
     const nombresMeses = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
 
@@ -31,28 +34,18 @@ const AbonosSemanal = () => {
 
     useEffect(() => {
         fetchDatos();
-    }, []);
+        setSelectedPayments([]); // Reset selection on month/data change
+    }, [mes, anio]);
 
-    // Función para obtener las semanas del mes seleccionado
-    const getSemanasDelMes = (m, a) => {
-        const semanas = [];
-        const primerDia = new Date(a, m, 1);
-        const ultimoDia = new Date(a, m + 1, 0);
-
-        // Simplificado: 4 semanas por mes para control de caja
-        return [
-            { id: 1, label: 'Sem 1' },
-            { id: 2, label: 'Sem 2' },
-            { id: 3, label: 'Sem 3' },
-            { id: 4, label: 'Sem 4' }
-        ];
-    };
-
-    const semanas = getSemanasDelMes(mes, anio);
+    // Semanas del mes (simplificado 1-4)
+    const semanas = [
+        { id: 1, label: 'Sem 1', subLabel: '01-07' },
+        { id: 2, label: 'Sem 2', subLabel: '08-14' },
+        { id: 3, label: 'Sem 3', subLabel: '15-21' },
+        { id: 4, label: 'Sem 4', subLabel: '22-Fin' }
+    ];
 
     const checkPago = (socioId, semanaId) => {
-        // Lógica simplificada: buscar si hay un movimiento de aportación en ese mes/semana
-        // Por ahora buscamos coincidencias en la descripción o fecha para demo
         return movimientos.some(m =>
             m.socio_id === socioId &&
             m.tipo === 'aportacion' &&
@@ -61,30 +54,59 @@ const AbonosSemanal = () => {
         );
     };
 
-    const registrarAbono = async (socio, semanaId) => {
-        const monto = socio.cupos * 100;
-        const confirmacion = window.confirm(`¿Registrar abono de $${monto} para ${socio.nombre_completo} (Semana ${semanaId})?`);
+    // Lógica secuencial estricta
+    const puedePagar = (socioId, semanaId) => {
+        if (semanaId === 1) return true;
+        return checkPago(socioId, semanaId - 1); // Debe haber pagado la anterior
+    };
 
+    // --- Batch Logic ---
+    const toggleSelection = (socioId, semanaId) => {
+        const key = `${socioId}-${semanaId}`;
+        setSelectedPayments(prev =>
+            prev.includes(key) ? prev.filter(k => k !== key) : [...prev, key]
+        );
+    };
+
+    const isSelected = (socioId, semanaId) => selectedPayments.includes(`${socioId}-${semanaId}`);
+
+    const handleBatchPayment = async () => {
+        if (selectedPayments.length === 0) return;
+
+        const confirmacion = window.confirm(`¿Registrar ${selectedPayments.length} abonos seleccionados?`);
         if (!confirmacion) return;
 
-        try {
-            const response = await fetch('./api/movimientos/create.php', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    socio_id: socio.id,
-                    tipo: 'aportacion',
-                    monto: monto,
-                    descripcion: `Abono correspondente a Semana ${semanaId} de ${nombresMeses[mes]}`
-                })
-            });
-            const data = await response.json();
-            if (data.success) {
-                fetchDatos(); // Recargar datos
+        let successCount = 0;
+
+        // Procesar en serie para evitar race conditions en servidor simple
+        for (const key of selectedPayments) {
+            const [socioId, semanaId] = key.split('-').map(Number);
+            const socio = socios.find(s => s.id === socioId);
+            if (!socio) continue;
+
+            const monto = socio.cupos * 100;
+
+            try {
+                const response = await fetch('./api/movimientos/create.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        socio_id: socio.id,
+                        tipo: 'aportacion',
+                        monto: monto,
+                        descripcion: `Abono correspondente a Semana ${semanaId} de ${nombresMeses[mes]}`
+                    })
+                });
+                const data = await response.json();
+                if (data.success) successCount++;
+            } catch (e) {
+                console.error("Error paying " + key);
             }
-        } catch (error) {
-            alert('Error al registrar abono');
         }
+
+        alert(`Se procesaron ${successCount} abonos exitosamente.`);
+        setSelectedPayments([]);
+        fetchDatos();
     };
 
     return (
@@ -92,15 +114,27 @@ const AbonosSemanal = () => {
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px' }}>
                 <div>
                     <h2 style={{ fontSize: '1.5rem', display: 'flex', alignItems: 'center', gap: '10px' }}>
-                        <Calendar color="var(--primary)" /> Control de Abonos Semanales
+                        <Calendar color="var(--primary)" /> Control de Abonos Seemanales
                     </h2>
                     <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>$100.00 MXN por cupo registrado</p>
                 </div>
 
-                <div style={{ display: 'flex', alignItems: 'center', gap: '15px', background: 'white', padding: '5px 15px', borderRadius: '10px', border: '1px solid var(--border)' }}>
-                    <button onClick={() => setMes(m => m === 0 ? 11 : m - 1)} style={{ background: 'none', border: 'none', cursor: 'pointer' }}><ChevronLeft size={20} /></button>
-                    <span style={{ fontWeight: '600', minWidth: '100px', textAlign: 'center' }}>{nombresMeses[mes]} {anio}</span>
-                    <button onClick={() => setMes(m => m === 11 ? 0 : m + 1)} style={{ background: 'none', border: 'none', cursor: 'pointer' }}><ChevronRight size={20} /></button>
+                <div style={{ display: 'flex', gap: '15px' }}>
+                    {selectedPayments.length > 0 && (
+                        <button
+                            onClick={handleBatchPayment}
+                            className="btn-primary"
+                            style={{ background: 'var(--success)', animation: 'pulse 2s infinite', display: 'flex', alignItems: 'center', gap: '8px' }}
+                        >
+                            <DollarSign size={18} /> Pagar ({selectedPayments.length})
+                        </button>
+                    )}
+
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', background: 'white', padding: '5px 15px', borderRadius: '10px', border: '1px solid var(--border)' }}>
+                        <button onClick={() => setMes(m => m === 0 ? 11 : m - 1)} style={{ background: 'none', border: 'none', cursor: 'pointer' }}><ChevronLeft size={20} /></button>
+                        <span style={{ fontWeight: '600', minWidth: '100px', textAlign: 'center' }}>{nombresMeses[mes]} {anio}</span>
+                        <button onClick={() => setMes(m => m === 11 ? 0 : m + 1)} style={{ background: 'none', border: 'none', cursor: 'pointer' }}><ChevronRight size={20} /></button>
+                    </div>
                 </div>
             </div>
 
@@ -109,64 +143,76 @@ const AbonosSemanal = () => {
                     <table>
                         <thead>
                             <tr>
-                                <th style={{ width: '250px' }}>Socio / Cupos</th>
-                                <th style={{ textAlign: 'center' }}>Monto Semanal</th>
+                                <th style={{ width: '250px' }}>Socio / Información</th>
+                                <th style={{ textAlign: 'center' }}>Cuota Semanal</th>
                                 {semanas.map(s => (
-                                    <th key={s.id} style={{ textAlign: 'center' }}>{s.label}</th>
+                                    <th key={s.id} style={{ textAlign: 'center' }}>
+                                        <div>{s.label}</div>
+                                        <div style={{ fontSize: '0.7rem', fontWeight: '400', color: '#94a3b8' }}>{s.subLabel}</div>
+                                    </th>
                                 ))}
-                                <th style={{ textAlign: 'center' }}>Total Mes</th>
+                                <th style={{ textAlign: 'center' }}>Progreso</th>
                             </tr>
                         </thead>
                         <tbody>
                             {loading ? (
-                                <tr><td colSpan={semanas.length + 3} style={{ textAlign: 'center', padding: '40px' }}>Cargando matriz de pagos...</td></tr>
+                                <tr><td colSpan={semanas.length + 3} style={{ textAlign: 'center', padding: '40px' }}>Cargando matriz...</td></tr>
                             ) : socios.length === 0 ? (
-                                <tr><td colSpan={semanas.length + 3} style={{ textAlign: 'center', padding: '40px' }}>No hay socios registrados.</td></tr>
+                                <tr><td colSpan={semanas.length + 3} style={{ textAlign: 'center', padding: '40px' }}>No hay socios.</td></tr>
                             ) : (
                                 socios.map(socio => {
                                     const montoSemanal = socio.cupos * 100;
-                                    let pagosMes = 0;
+                                    let pagosCount = 0;
                                     return (
                                         <tr key={socio.id} className="table-row-hover">
-                                            <td style={{ fontWeight: '500' }}>
-                                                <div>{socio.nombre_completo}</div>
+                                            <td style={{ fontWeight: '500', padding: '15px' }}>
+                                                <div style={{ color: 'var(--primary-dark)', fontWeight: 'bold' }}>{socio.nombre_completo}</div>
                                                 <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-                                                    {socio.cupos} {socio.cupos === 1 ? 'cupo' : 'cupos'} registrado(s)
+                                                    ID: {socio.numero_socio} • {socio.cupos} cupo(s)
                                                 </div>
                                             </td>
-                                            <td style={{ textAlign: 'center', fontWeight: '600', color: 'var(--primary)' }}>
-                                                ${montoSemanal.toLocaleString()}
+                                            <td style={{ textAlign: 'center', fontWeight: '600', color: 'var(--text-main)' }}>
+                                                ${montoSemanal}
                                             </td>
                                             {semanas.map(sem => {
                                                 const pagado = checkPago(socio.id, sem.id);
-                                                if (pagado) pagosMes += montoSemanal;
+                                                const habilitado = puedePagar(socio.id, sem.id);
+                                                if (pagado) pagosCount++;
+
                                                 return (
-                                                    <td key={sem.id} style={{ textAlign: 'center' }}>
+                                                    <td key={sem.id} style={{ textAlign: 'center', padding: '10px' }}>
                                                         {pagado ? (
                                                             <div style={{ color: 'var(--success)', display: 'flex', justifyContent: 'center' }}>
-                                                                <Check size={22} strokeWidth={3} />
+                                                                <Check size={26} strokeWidth={3} />
                                                             </div>
                                                         ) : (
-                                                            <button
-                                                                onClick={() => registrarAbono(socio, sem.id)}
+                                                            <div
+                                                                onClick={() => habilitado && toggleSelection(socio.id, sem.id)}
                                                                 style={{
-                                                                    background: '#f1f5f9',
-                                                                    border: '1px dashed #cbd5e1',
+                                                                    width: '28px', height: '28px',
+                                                                    border: isSelected(socio.id, sem.id) ? '2px solid var(--primary)' : '2px solid #cbd5e1',
                                                                     borderRadius: '6px',
-                                                                    padding: '4px 8px',
-                                                                    cursor: 'pointer',
-                                                                    fontSize: '0.75rem',
-                                                                    color: '#64748b'
+                                                                    margin: '0 auto',
+                                                                    cursor: habilitado ? 'pointer' : 'not-allowed',
+                                                                    background: isSelected(socio.id, sem.id) ? 'var(--primary)' : (habilitado ? 'white' : '#f1f5f9'),
+                                                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                                                    transition: 'all 0.2s',
+                                                                    opacity: habilitado ? 1 : 0.4
                                                                 }}
                                                             >
-                                                                Cobrar
-                                                            </button>
+                                                                {isSelected(socio.id, sem.id) && <Check size={18} color="white" />}
+                                                            </div>
                                                         )}
                                                     </td>
                                                 );
                                             })}
-                                            <td style={{ textAlign: 'center', fontWeight: 'bold', borderLeft: '1px solid var(--border)', background: '#f8fafc' }}>
-                                                ${pagosMes.toLocaleString()}
+                                            <td style={{ textAlign: 'center' }}>
+                                                <div style={{ width: '80%', height: '6px', background: '#e2e8f0', borderRadius: '10px', margin: '0 auto' }}>
+                                                    <div style={{ width: `${(pagosCount / semanas.length) * 100}%`, height: '100%', background: 'var(--success)', borderRadius: '10px' }}></div>
+                                                </div>
+                                                <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginTop: '4px' }}>
+                                                    {pagosCount}/{semanas.length}
+                                                </div>
                                             </td>
                                         </tr>
                                     );
@@ -174,15 +220,6 @@ const AbonosSemanal = () => {
                             )}
                         </tbody>
                     </table>
-                </div>
-            </div>
-
-            <div style={{ marginTop: '20px', display: 'flex', gap: '20px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.85rem', color: 'var(--text-muted)' }}>
-                    <div style={{ width: '12px', height: '12px', borderRadius: '3px', background: 'var(--success)' }}></div> Pagado
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.85rem', color: 'var(--text-muted)' }}>
-                    <div style={{ width: '12px', height: '12px', borderRadius: '3px', border: '1px dashed #cbd5e1', background: '#f1f5f9' }}></div> Pendiente
                 </div>
             </div>
         </div>
