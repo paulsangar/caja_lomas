@@ -47,7 +47,7 @@ const Socios = () => {
             </div>
 
             <div className="glass-panel" style={{ padding: '0', overflow: 'hidden' }}>
-                <div style={{ padding: '20px', borderBottom: '1px solid var(--glass-border)', display: 'flex', gap: '15px' }}>
+                <div style={{ padding: '20px', borderBottom: '1px solid var(--border)', display: 'flex', gap: '15px', background: '#f8fafc' }}>
                     <div style={{ position: 'relative', flex: 1 }}>
                         <Search size={18} style={{ position: 'absolute', left: '12px', top: '10px', color: 'var(--text-muted)' }} />
                         <input
@@ -58,19 +58,20 @@ const Socios = () => {
                             style={{
                                 width: '100%',
                                 padding: '10px 15px 10px 40px',
-                                background: 'rgba(255,255,255,0.05)',
-                                border: '1px solid var(--glass-border)',
+                                background: 'white',
+                                border: '1px solid var(--border)',
                                 borderRadius: '8px',
-                                color: 'white'
+                                color: 'var(--text-main)',
+                                outline: 'none'
                             }}
                         />
                     </div>
                 </div>
 
-                <div style={{ overflowX: 'auto' }}>
-                    <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+                <div className="table-container">
+                    <table>
                         <thead>
-                            <tr style={{ background: 'rgba(255,255,255,0.02)', fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+                            <tr>
                                 <th style={{ padding: '15px 20px' }}># Socio</th>
                                 <th style={{ padding: '15px 20px' }}>Nombre</th>
                                 <th style={{ padding: '15px 20px' }}>Estatus</th>
@@ -91,10 +92,10 @@ const Socios = () => {
                                 </tr>
                             ) : (
                                 filteredSocios.map(socio => (
-                                    <tr key={socio.id} style={{ borderBottom: '1px solid var(--glass-border)' }} className="table-row-hover">
-                                        <td style={{ padding: '15px 20px', fontWeight: 'bold' }}>{socio.numero_socio}</td>
+                                    <tr key={socio.id} className="table-row-hover">
+                                        <td style={{ padding: '15px 20px', fontWeight: 'bold', color: 'var(--primary)' }}>{socio.numero_socio}</td>
                                         <td style={{ padding: '15px 20px' }}>
-                                            <div>{socio.nombre_completo}</div>
+                                            <div style={{ fontWeight: '500' }}>{socio.nombre_completo}</div>
                                             <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{socio.email || 'Sin correo'}</div>
                                         </td>
                                         <td style={{ padding: '15px 20px' }}>
@@ -102,18 +103,18 @@ const Socios = () => {
                                                 padding: '4px 10px',
                                                 borderRadius: '20px',
                                                 fontSize: '0.75rem',
-                                                background: socio.estatus === 'activo' ? 'rgba(34,197,94,0.1)' : 'rgba(239,68,68,0.1)',
+                                                background: socio.estatus === 'activo' ? '#ecfdf5' : '#fef2f2',
                                                 color: socio.estatus === 'activo' ? 'var(--success)' : 'var(--danger)',
-                                                border: `1px solid ${socio.estatus === 'activo' ? 'rgba(34,197,94,0.2)' : 'rgba(239,68,68,0.2)'}`
+                                                fontWeight: '600'
                                             }}>
                                                 {socio.estatus.toUpperCase()}
                                             </span>
                                         </td>
-                                        <td style={{ padding: '15px 20px', fontWeight: 'bold', color: 'var(--primary-light)' }}>
+                                        <td style={{ padding: '15px 20px', fontWeight: 'bold', color: 'var(--text-main)' }}>
                                             ${parseFloat(socio.saldo_total).toLocaleString('es-MX', { minimumFractionDigits: 2 })}
                                         </td>
                                         <td style={{ padding: '15px 20px' }}>
-                                            <button style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}>
+                                            <button style={{ background: 'transparent', border: 'none', color: 'var(--primary)', cursor: 'pointer' }}>
                                                 <ExternalLink size={18} />
                                             </button>
                                         </td>

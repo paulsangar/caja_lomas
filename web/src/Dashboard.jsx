@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { LogOut, Wallet, Users, Landmark, Bell, Home, ChevronRight, History } from 'lucide-react';
+import { LogOut, Wallet, Users, Landmark, Bell, Home, ChevronRight, History, Calendar } from 'lucide-react';
 import Socios from './components/Socios';
 import Movimientos from './components/Movimientos';
 import Prestamos from './components/Prestamos';
+import AbonosSemanal from './components/AbonosSemanal';
 
 const Dashboard = ({ user, onLogout }) => {
     const [currentView, setCurrentView] = useState('home');
@@ -39,6 +40,7 @@ const Dashboard = ({ user, onLogout }) => {
             case 'socios': return <Socios />;
             case 'movimientos': return <Movimientos />;
             case 'prestamos': return <Prestamos />;
+            case 'abonos_semanal': return <AbonosSemanal />;
             case 'home':
             default:
                 return (
@@ -147,12 +149,13 @@ const Dashboard = ({ user, onLogout }) => {
                         <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>Administrador del Sistema</p>
                     </div>
 
-                    <nav style={{ display: 'flex', gap: '8px', background: 'rgba(255,255,255,0.03)', padding: '5px', borderRadius: '12px' }}>
+                    <nav style={{ display: 'flex', gap: '8px', background: 'white', padding: '5px', borderRadius: '12px', border: '1px solid var(--border)' }}>
                         {[
                             { id: 'home', icon: <Home size={18} />, label: 'Inicio' },
                             { id: 'socios', icon: <Users size={18} />, label: 'Socios' },
-                            { id: 'movimientos', icon: <History size={18} />, label: 'Movimientos' },
-                            { id: 'prestamos', icon: <Landmark size={18} />, label: 'Préstamos' }
+                            { id: 'abonos_semanal', icon: <Calendar size={18} />, label: 'Abonos' },
+                            { id: 'prestamos', icon: <Landmark size={18} />, label: 'Préstamos' },
+                            { id: 'movimientos', icon: <History size={18} />, label: 'Historial' }
                         ].map(item => (
                             <button
                                 key={item.id}

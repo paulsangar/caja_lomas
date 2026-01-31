@@ -76,10 +76,10 @@ const Prestamos = () => {
                         <thead>
                             <tr style={{ background: 'rgba(255,255,255,0.02)', fontSize: '0.85rem', color: 'var(--text-muted)' }}>
                                 <th style={{ padding: '15px 20px' }}>Socio</th>
-                                <th style={{ padding: '15px 20px' }}>Monto Solicitado</th>
-                                <th style={{ padding: '15px 20px' }}>Plazo</th>
+                                <th style={{ padding: '15px 20px' }}>Préstamo</th>
                                 <th style={{ padding: '15px 20px' }}>Estatus</th>
-                                <th style={{ padding: '15px 20px' }}>Saldo Pendiente</th>
+                                <th style={{ padding: '15px 20px' }}>Pagado</th>
+                                <th style={{ padding: '15px 20px' }}>Residual</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -90,16 +90,20 @@ const Prestamos = () => {
                             ) : (
                                 filtered.map(p => {
                                     const style = getStatusStyle(p.estatus);
+                                    const total = parseFloat(p.monto_aprobado || p.monto_solicitado);
+                                    const pagado = parseFloat(p.monto_pagado || 0);
+                                    const residual = total - pagado;
+
                                     return (
-                                        <tr key={p.id} style={{ borderBottom: '1px solid var(--glass-border)' }} className="table-row-hover">
+                                        <tr key={p.id} style={{ borderBottom: '1px solid var(--border)' }} className="table-row-hover">
                                             <td style={{ padding: '15px 20px' }}>
                                                 <div style={{ fontWeight: '500' }}>{p.socio_nombre}</div>
-                                                <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Socio #{p.numero_socio}</div>
+                                                <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>#{p.numero_socio}</div>
                                             </td>
-                                            <td style={{ padding: '15px 20px', fontWeight: 'bold' }}>
-                                                ${parseFloat(p.monto_solicitado).toLocaleString('es-MX', { minimumFractionDigits: 2 })}
+                                            <td style={{ padding: '15px 20px' }}>
+                                                <div style={{ fontWeight: '600' }}>${total.toLocaleString()}</div>
+                                                <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{p.plazo_meses} meses • {new Date(p.fecha_solicitud).toLocaleDateString()}</div>
                                             </td>
-                                            <td style={{ padding: '15px 20px' }}>{p.plazo_meses} meses</td>
                                             <td style={{ padding: '15px 20px' }}>
                                                 <span style={{
                                                     padding: '4px 10px',
@@ -109,14 +113,16 @@ const Prestamos = () => {
                                                     color: style.color,
                                                     display: 'inline-flex',
                                                     alignItems: 'center',
-                                                    gap: '6px',
-                                                    border: `1px solid ${style.color}33`
+                                                    gap: '6px'
                                                 }}>
                                                     {style.icon} {p.estatus.toUpperCase()}
                                                 </span>
                                             </td>
-                                            <td style={{ padding: '15px 20px', fontWeight: 'bold', color: 'var(--warning)' }}>
-                                                ${parseFloat(p.saldo_pendiente || 0).toLocaleString('es-MX', { minimumFractionDigits: 2 })}
+                                            <td style={{ padding: '15px 20px', fontWeight: '500', color: 'var(--success)' }}>
+                                                ${pagado.toLocaleString()}
+                                            </td>
+                                            <td style={{ padding: '15px 20px', fontWeight: 'bold', color: residual > 0 ? 'var(--danger)' : 'var(--success)' }}>
+                                                ${residual.toLocaleString()}
                                             </td>
                                         </tr>
                                     );
