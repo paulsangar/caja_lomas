@@ -6,6 +6,11 @@ const SocioForm = ({ onClose, onSuccess }) => {
         nombre: '',
         email: '',
         numero_socio: '',
+        telefono: '',
+        numero_cuenta: '',
+        banco: '',
+        cupos: 1,
+        fecha_nacimiento: '',
         password: ''
     });
     const [loading, setLoading] = useState(false);
@@ -13,6 +18,13 @@ const SocioForm = ({ onClose, onSuccess }) => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+
+        // Validaciones básicas
+        if (!formData.nombre || !formData.numero_socio || !formData.cupos) {
+            setError('Por favor llena los campos obligatorios (*)');
+            return;
+        }
+
         setLoading(true);
         setError('');
 
@@ -45,23 +57,25 @@ const SocioForm = ({ onClose, onSuccess }) => {
             left: 0,
             right: 0,
             bottom: 0,
-            background: 'rgba(0,0,0,0.7)',
+            background: 'rgba(0,0,0,0.5)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             zIndex: 1000,
-            backdropFilter: 'blur(5px)'
+            padding: '20px'
         }}>
-            <div className="glass-panel" style={{
+            <div className="glass-panel animate-fade-in" style={{
                 width: '100%',
-                maxWidth: '500px',
+                maxWidth: '600px',
                 padding: '30px',
+                maxHeight: '90vh',
+                overflowY: 'auto',
                 position: 'relative'
             }}>
                 <button onClick={onClose} style={{
                     position: 'absolute',
                     top: '20px',
-                    right: '20px',
+                    right: '24px',
                     background: 'transparent',
                     border: 'none',
                     color: 'var(--text-muted)',
@@ -70,63 +84,115 @@ const SocioForm = ({ onClose, onSuccess }) => {
                     <X size={24} />
                 </button>
 
-                <h2 style={{ marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    <UserPlus color="var(--primary)" /> Nuevo Socio
+                <h2 style={{ marginBottom: '24px', fontSize: '1.25rem', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <UserPlus color="var(--primary)" /> Registro de Nuevo Socio
                 </h2>
 
                 <form onSubmit={handleSubmit}>
-                    <div className="input-group">
-                        <label>Nombre Completo</label>
-                        <input
-                            type="text"
-                            value={formData.nombre}
-                            onChange={(e) => setFormData({ ...formData, nombre: e.target.value })}
-                            required
-                            placeholder="Ej. Juan Pérez"
-                        />
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
+                        <div className="input-group">
+                            <label>Nombre Completo *</label>
+                            <input
+                                type="text"
+                                value={formData.nombre}
+                                onChange={(e) => setFormData({ ...formData, nombre: e.target.value })}
+                                required
+                            />
+                        </div>
+
+                        <div className="input-group">
+                            <label>Número de Socio (ID) *</label>
+                            <input
+                                type="text"
+                                value={formData.numero_socio}
+                                onChange={(e) => setFormData({ ...formData, numero_socio: e.target.value })}
+                                required
+                            />
+                        </div>
+
+                        <div className="input-group">
+                            <label>Fecha de Nacimiento</label>
+                            <input
+                                type="date"
+                                value={formData.fecha_nacimiento}
+                                onChange={(e) => setFormData({ ...formData, fecha_nacimiento: e.target.value })}
+                            />
+                        </div>
+
+                        <div className="input-group">
+                            <label>Teléfono</label>
+                            <input
+                                type="tel"
+                                value={formData.telefono}
+                                onChange={(e) => setFormData({ ...formData, telefono: e.target.value })}
+                                placeholder="10 dígitos"
+                            />
+                        </div>
+
+                        <div className="input-group">
+                            <label>Banco</label>
+                            <input
+                                type="text"
+                                value={formData.banco}
+                                onChange={(e) => setFormData({ ...formData, banco: e.target.value })}
+                            />
+                        </div>
+
+                        <div className="input-group">
+                            <label>Número de Cuenta / CLABE</label>
+                            <input
+                                type="text"
+                                value={formData.numero_cuenta}
+                                onChange={(e) => setFormData({ ...formData, numero_cuenta: e.target.value })}
+                            />
+                        </div>
+
+                        <div className="input-group">
+                            <label>Núm. de Cupos * ($100 c/u)</label>
+                            <input
+                                type="number"
+                                min="1"
+                                value={formData.cupos}
+                                onChange={(e) => setFormData({ ...formData, cupos: e.target.value })}
+                                required
+                            />
+                        </div>
+
+                        <div className="input-group">
+                            <label>Correo Electrónico</label>
+                            <input
+                                type="email"
+                                value={formData.email}
+                                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                            />
+                        </div>
                     </div>
 
                     <div className="input-group">
-                        <label>Número de Socio (ID)</label>
-                        <input
-                            type="text"
-                            value={formData.numero_socio}
-                            onChange={(e) => setFormData({ ...formData, numero_socio: e.target.value })}
-                            required
-                            placeholder="Ej. 101"
-                        />
-                    </div>
-
-                    <div className="input-group">
-                        <label>Correo Electrónico (Opcional)</label>
-                        <input
-                            type="email"
-                            value={formData.email}
-                            onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                            placeholder="juan@ejemplo.com"
-                        />
-                    </div>
-
-                    <div className="input-group">
-                        <label>Contraseña Provisional</label>
+                        <label>Contraseña para el Socio</label>
                         <input
                             type="text"
                             value={formData.password}
                             onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                            placeholder="Dejar vacío para '123456'"
+                            placeholder="Por defecto: 123456"
                         />
                     </div>
 
                     {error && (
-                        <div style={{ color: 'var(--danger)', marginBottom: '15px', fontSize: '0.9rem' }}>
+                        <div style={{ color: 'var(--danger)', marginBottom: '15px', fontSize: '0.85rem', background: '#fef2f2', padding: '10px', borderRadius: '8px', border: '1px solid #fee2e2' }}>
                             {error}
                         </div>
                     )}
 
-                    <button type="submit" className="btn-primary" style={{ width: '100%', marginTop: '10px' }} disabled={loading}>
-                        <Save size={18} style={{ marginRight: '8px' }} />
-                        {loading ? 'Guardando...' : 'Guardar Socio'}
-                    </button>
+                    <div style={{ display: 'flex', gap: '12px', marginTop: '20px' }}>
+                        <button type="button" onClick={onClose} style={{ flex: 1, background: '#f1f5f9', border: 'none', padding: '12px', borderRadius: '8px', cursor: 'pointer' }}>
+                            Cancelar
+                        </button>
+                        <button type="submit" className="btn-primary" style={{ flex: 2 }} disabled={loading}>
+                            <Save size={18} style={{ marginRight: '8px' }} />
+                            {loading ? 'Guardando...' : 'Registrar Socio'}
+                        </button>
+                    </div>
                 </form>
             </div>
         </div>

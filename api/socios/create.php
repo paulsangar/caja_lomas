@@ -13,6 +13,11 @@ if (!$data) {
 $nombre = $data['nombre'] ?? '';
 $email = $data['email'] ?? '';
 $numero_socio = $data['numero_socio'] ?? '';
+$telefono = $data['telefono'] ?? '';
+$numero_cuenta = $data['numero_cuenta'] ?? '';
+$banco = $data['banco'] ?? '';
+$cupos = intval($data['cupos'] ?? 1);
+$fecha_nacimiento = $data['fecha_nacimiento'] ?? null;
 $password = $data['password'] ?? '123456'; // Contraseña por defecto
 
 if (empty($nombre) || empty($numero_socio)) {
@@ -32,9 +37,9 @@ try {
     $stmt->execute([$username, $password_hash, $nombre, $email]);
     $usuario_id = $pdo->lastInsertId();
 
-    // 2. Crear el registro de socio
-    $stmt = $pdo->prepare("INSERT INTO socios (usuario_id, numero_socio, fecha_ingreso) VALUES (?, ?, CURDATE())");
-    $stmt->execute([$usuario_id, $numero_socio]);
+    // 2. Crear el registro de socio con nuevos campos
+    $stmt = $pdo->prepare("INSERT INTO socios (usuario_id, numero_socio, telefono, numero_cuenta, banco, cupos, fecha_nacimiento, fecha_ingreso) VALUES (?, ?, ?, ?, ?, ?, ?, CURDATE())");
+    $stmt->execute([$usuario_id, $numero_socio, $telefono, $numero_cuenta, $banco, $cupos, $fecha_nacimiento]);
 
     $pdo->commit();
 
