@@ -18,7 +18,8 @@ try {
     $plazo = $data['plazo_semanas'] ?? 1;
 
     // 1. Insertar Préstamo
-    $stmt = $pdo->prepare("INSERT INTO prestamos (socio_id, monto, monto_total_pagar, pagado, estado, plazo_semanas, fecha_inicio) VALUES (?, ?, ?, 0, 'activo', ?, NOW())");
+    // Corrección V5.1: Usar 'monto_solicitado' y 'estatus' según esquema original
+    $stmt = $pdo->prepare("INSERT INTO prestamos (socio_id, monto_solicitado, monto_total_pagar, pagado, estatus, plazo_semanas, fecha_inicio) VALUES (?, ?, ?, 0, 'aprobado', ?, NOW())");
     $stmt->execute([
         $data['socio_id'],
         $monto,
