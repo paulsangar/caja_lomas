@@ -22,7 +22,7 @@ try {
         $params[] = $usuario_id;
     }
 
-    $sql .= " ORDER BY p.fecha_solicitud DESC";
+    $sql .= " ORDER BY p.fecha_inicio DESC";
 
     $stmt = $pdo->prepare($sql);
     $stmt->execute($params);

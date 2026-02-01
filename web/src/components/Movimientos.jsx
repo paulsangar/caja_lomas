@@ -32,6 +32,27 @@ const Movimientos = ({ user }) => {
         m.tipo.includes(searchTerm)
     );
 
+    const [sortConfig, setSortConfig] = useState({ key: 'fecha_operacion', direction: 'desc' });
+
+    const handleSort = (key) => {
+        let direction = 'asc';
+        if (sortConfig.key === key && sortConfig.direction === 'asc') {
+            direction = 'desc';
+        }
+        setSortConfig({ key, direction });
+    };
+
+    const sortedMovimientos = [...filtered].sort((a, b) => {
+        if (a[sortConfig.key] < b[sortConfig.key]) return sortConfig.direction === 'asc' ? -1 : 1;
+        if (a[sortConfig.key] > b[sortConfig.key]) return sortConfig.direction === 'asc' ? 1 : -1;
+        return 0;
+    });
+
+    const SortIcon = ({ columnKey }) => {
+        if (sortConfig.key !== columnKey) return null;
+        return <span style={{ marginLeft: '5px', fontSize: '0.8em' }}>{sortConfig.direction === 'asc' ? '▲' : '▼'}</span>;
+    };
+
     return (
         <div className="animate-fade-in">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px' }}>
@@ -65,21 +86,21 @@ const Movimientos = ({ user }) => {
                 <div style={{ overflowX: 'auto' }}>
                     <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
                         <thead>
-                            <tr style={{ background: 'rgba(255,255,255,0.02)', fontSize: '0.85rem', color: 'var(--text-muted)' }}>
-                                <th style={{ padding: '15px 20px' }}>Fecha</th>
-                                <th style={{ padding: '15px 20px' }}>Socio</th>
-                                <th style={{ padding: '15px 20px' }}>Tipo</th>
-                                <th style={{ padding: '15px 20px' }}>Descripción</th>
-                                <th style={{ padding: '15px 20px', textAlign: 'right' }}>Monto</th>
+                            <tr style={{ background: 'rgba(255,255,255,0.02)', fontSize: '0.85rem', color: 'var(--text-muted)', cursor: 'pointer' }}>
+                                <th onClick={() => handleSort('fecha_operacion')} style={{ padding: '15px 20px' }}>Fecha <SortIcon columnKey="fecha_operacion" /></th>
+                                <th onClick={() => handleSort('socio_nombre')} style={{ padding: '15px 20px' }}>Socio <SortIcon columnKey="socio_nombre" /></th>
+                                <th onClick={() => handleSort('tipo')} style={{ padding: '15px 20px' }}>Tipo <SortIcon columnKey="tipo" /></th>
+                                <th onClick={() => handleSort('descripcion')} style={{ padding: '15px 20px' }}>Descripción <SortIcon columnKey="descripcion" /></th>
+                                <th onClick={() => handleSort('monto')} style={{ padding: '15px 20px', textAlign: 'right' }}>Monto <SortIcon columnKey="monto" /></th>
                             </tr>
                         </thead>
                         <tbody>
                             {loading ? (
                                 <tr><td colSpan="5" style={{ padding: '40px', textAlign: 'center' }}>Cargando...</td></tr>
-                            ) : filtered.length === 0 ? (
+                            ) : sortedMovimientos.length === 0 ? (
                                 <tr><td colSpan="5" style={{ padding: '40px', textAlign: 'center', color: 'var(--text-muted)' }}>No hay registros.</td></tr>
                             ) : (
-                                filtered.map(m => (
+                                sortedMovimientos.map(m => (
                                     <tr key={m.id} style={{ borderBottom: '1px solid var(--glass-border)' }} className="table-row-hover">
                                         <td style={{ padding: '15px 20px', fontSize: '0.9rem' }}>
                                             {new Date(m.fecha_operacion).toLocaleDateString('es-MX')}

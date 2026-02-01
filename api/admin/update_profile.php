@@ -12,7 +12,7 @@ if (!$data || empty($data['id'])) {
 try {
     if (!empty($data['newPassword'])) {
         $hash = password_hash($data['newPassword'], PASSWORD_DEFAULT);
-        $stmt = $pdo->prepare("UPDATE usuarios SET nombre_completo = ?, email = ?, password = ? WHERE id = ?");
+        $stmt = $pdo->prepare("UPDATE usuarios SET nombre_completo = ?, email = ?, password_hash = ? WHERE id = ?");
         $stmt->execute([$data['nombre'], $data['email'], $hash, $data['id']]);
     } else {
         $stmt = $pdo->prepare("UPDATE usuarios SET nombre_completo = ?, email = ? WHERE id = ?");

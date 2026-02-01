@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Calendar, Check, ChevronLeft, ChevronRight, Search, Save } from 'lucide-react';
 
-const AbonosSemanal = () => {
+const AbonosSemanal = ({ user }) => {
     const [socios, setSocios] = useState([]);
     const [movimientos, setMovimientos] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -76,8 +76,10 @@ const AbonosSemanal = () => {
         return movimientos.some(m =>
             m.socio_id === socioId &&
             m.tipo === 'aportacion' &&
-            new Date(m.fecha_operacion).getMonth() === mesIndex &&
-            m.descripcion.includes(`Semana ${semanaId}`)
+            // Fix: No usar fecha_operacion porque el pago puede hacerse en otro mes.
+            // Usar coincidencia en la descripción que contiene "Semana X de Mes Y"
+            m.descripcion.includes(`Semana ${semanaId}`) &&
+            m.descripcion.includes(nombresMeses[mesIndex])
         );
     };
 
@@ -222,7 +224,7 @@ const AbonosSemanal = () => {
                         />
                     </div>
 
-                    {selectedPayments.length > 0 && (
+                    {user.rol === 'admin' && selectedPayments.length > 0 && (
                         <button
                             onClick={handleBatchPayment}
                             disabled={isSaving}
@@ -295,22 +297,26 @@ const AbonosSemanal = () => {
                                                                 <Check size={18} strokeWidth={4} />
                                                             </div>
                                                         ) : (
-                                                            <div
-                                                                onClick={() => toggleSelection(socio.id, col, idx)}
-                                                                style={{
-                                                                    width: '20px', height: '20px',
-                                                                    border: selected ? '2px solid var(--primary)' : '2px solid #cbd5e1',
-                                                                    borderRadius: '4px',
-                                                                    margin: '0 auto',
-                                                                    cursor: habilitado ? 'pointer' : 'not-allowed',
-                                                                    background: selected ? 'var(--primary)' : (habilitado ? 'white' : '#f8fafc'),
-                                                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                                                    transition: 'all 0.1s',
-                                                                    opacity: habilitado || selected ? 1 : 0.4
-                                                                }}
-                                                            >
-                                                                {selected && <Check size={12} color="white" />}
-                                                            </div>
+                                                            user.rol === 'admin' ? (
+                                                                <div
+                                                                    onClick={() => toggleSelection(socio.id, col, idx)}
+                                                                    style={{
+                                                                        width: '20px', height: '20px',
+                                                                        border: selected ? '2px solid var(--primary)' : '2px solid #cbd5e1',
+                                                                        borderRadius: '4px',
+                                                                        margin: '0 auto',
+                                                                        cursor: habilitado ? 'pointer' : 'not-allowed',
+                                                                        background: selected ? 'var(--primary)' : (habilitado ? 'white' : '#f8fafc'),
+                                                                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                                                        transition: 'all 0.1s',
+                                                                        opacity: habilitado || selected ? 1 : 0.4
+                                                                    }}
+                                                                >
+                                                                    {selected && <Check size={12} color="white" />}
+                                                                </div>
+                                                            ) : (
+                                                                <div style={{ width: '20px', height: '20px', background: '#f1f5f9', borderRadius: '4px', margin: '0 auto' }}></div>
+                                                            )
                                                         )}
                                                     </td>
                                                 );

@@ -18,12 +18,11 @@ try {
     $plazo = $data['plazo_semanas'] ?? 1;
 
     // 1. Insertar Préstamo
-    // Corrección V5.1: Usar 'monto_solicitado' y 'estatus' según esquema original
-    $stmt = $pdo->prepare("INSERT INTO prestamos (socio_id, monto_solicitado, monto_total_pagar, pagado, estatus, plazo_semanas, fecha_inicio) VALUES (?, ?, ?, 0, 'aprobado', ?, NOW())");
+    // Corrección V5.2: Eliminar columna 'monto_total_pagar' si no existe en BD
+    $stmt = $pdo->prepare("INSERT INTO prestamos (socio_id, monto_solicitado, pagado, estatus, plazo_semanas, fecha_inicio) VALUES (?, ?, 0, 'aprobado', ?, NOW())");
     $stmt->execute([
         $data['socio_id'],
         $monto,
-        $total,
         $plazo
     ]);
     $prestamoId = $pdo->lastInsertId();

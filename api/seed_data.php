@@ -6,17 +6,18 @@ error_reporting(E_ALL);
 require_once __DIR__ . '/config/db.php';
 
 echo "<pre>";
-echo "Iniciando sembrado de datos (Seed)...\n";
+echo "Iniciando sembrado de datos (Seed v2)...\n";
 
 try {
     $pdo->beginTransaction();
 
-    // 1. Limpiar tablas (Opcional, cuidado en prod)
+    // 1. Limpiar tablas
     $pdo->exec("SET FOREIGN_KEY_CHECKS = 0");
     $pdo->exec("TRUNCATE TABLE movimientos");
     $pdo->exec("TRUNCATE TABLE prestamos");
     $pdo->exec("TRUNCATE TABLE socios");
     $pdo->exec("TRUNCATE TABLE usuarios");
+    $pdo->exec("TRUNCATE TABLE avisos");
     $pdo->exec("SET FOREIGN_KEY_CHECKS = 1");
     echo "Tablas limpiadas.\n";
 
@@ -25,55 +26,86 @@ try {
     $stmt = $pdo->prepare("INSERT INTO usuarios (username, password_hash, nombre_completo, rol, email) VALUES (?, ?, ?, ?, ?)");
     $stmt->execute(['admin', $passAdmin, 'Administrador Sistema', 'admin', 'admin@caja.com']);
     $adminId = $pdo->lastInsertId();
-    echo "Admin creado (User: admin, Pass: admin123).\n";
+    echo "Admin creado.\n";
 
-    // 3. Crear Usuario Socio Prueba
-    $passSocio = password_hash('socio123', PASSWORD_DEFAULT);
-    $stmt->execute(['socio_test', $passSocio, 'Juan Pérez (Demo)', 'socio', 'juan@demo.com']);
-    $userId = $pdo->lastInsertId();
-    echo "Usuario Socio creado (User: socio_test, Pass: socio123).\n";
+    // 3. Crear Socios
+    $sociosData = [
+        ['juanp', 'Juan Pérez', '1001', 2, 0],
+        ['mariag', 'María García', '1002', 1, 0],
+        ['pedrol', 'Pedro López', '1003', 3, 0],
+        ['anal', 'Ana López', '1004', 1, 0],
+        ['luisr', 'Luis Rodríguez', '1005', 2, 0],
+        ['sofiam', 'Sofía Martínez', '1006', 1, 0],
+        ['carlosv', 'Carlos Vega', '1007', 4, 0],
+        ['marthas', 'Martha Sánchez', '1008', 2, 0],
+        ['diegor', 'Diego Ruiz', '1009', 1, 0],
+        ['luciah', 'Lucía Hernández', '1010', 3, 0],
+    ];
 
-    // 4. Crear Perfil Socio
-    $stmtSocio = $pdo->prepare("INSERT INTO socios (usuario_id, numero_socio, telefono, banco, cupos, fecha_ingreso, saldo_total) VALUES (?, ?, ?, ?, ?, CURDATE(), ?)");
-    $stmtSocio->execute([$userId, '1001', '5512345678', 'BBVA', 2, 0]); // Saldo inicial 0
-    $socioId = $pdo->lastInsertId();
-    echo "Perfil Socio creado.\n";
-
-    // 5. Crear otros socios
-    $nombres = ['Maria Garcia', 'Pedro Lopez', 'Ana Martinez'];
-    foreach ($nombres as $i => $nom) {
-        $userStr = strtolower(str_replace(' ', '', $nom));
-        $stmt->execute([$userStr, $passSocio, $nom, 'socio', "$userStr@demo.com"]);
-        $uId = $pdo->lastInsertId();
-        $stmtSocio->execute([$uId, 1002 + $i, '550000000' . $i, 'Banamex', 1, 0]);
-    }
-    echo "Socios adicionales creados.\n";
-
-    // 6. Registrar Aportaciones (Simular historial)
+    $stmtSocio = $pdo->prepare("INSERT INTO socios (usuario_id, numero_socio, telefono, banco, cupos, fecha_ingreso, saldo_total) VALUES (?, ?, ?, ?, ?, CURDATE(), 0)");
     $stmtMov = $pdo->prepare("INSERT INTO movimientos (socio_id, tipo, monto, descripcion, fecha_operacion) VALUES (?, ?, ?, ?, ?)");
 
-    // Juan Perez aporta 4 semanas
-    $fechas = ['2024-01-01', '2024-01-08', '2024-01-15', '2024-01-22'];
-    $totalAportado = 0;
-    foreach ($fechas as $i => $fecha) {
-        $monto = 200; // 2 cupos * 100
-        $stmtMov->execute([$socioId, 'aportacion', $monto, "Abono Semana " . ($i + 1) . " Enero", "$fecha 12:00:00"]);
-        $totalAportado += $monto;
+    $sociosIds = [];
+
+    foreach ($sociosData as $s) {
+        // Usuario
+        $pass = password_hash('socio123', PASSWORD_DEFAULT);
+        $stmt->execute([$s[0], $pass, $s[1], 'socio', $s[0] . '@demo.com']);
+        $uId = $pdo->lastInsertId();
+
+        // Socio
+        $stmtSocio->execute([$uId, $s[2], '550000' . $s[2], 'Banco Test', $s[3]]);
+        $sId = $pdo->lastInsertId();
+        $sociosIds[] = $sId;
+
+        // Aportaciones (Simuladas: Juan paga todo Enero, Maria paga 2 semanas, Pedro nada)
+        // Meses: Enero (0) tiene 4-5 semanas.
+
+        $montoSemanal = $s[3] * 100;
+
+        // Random payment logic
+        $semanasPagar = rand(0, 8); // Paga entre 0 y 8 semanas (Enero y Feb)
+
+        $totalAportado = 0;
+        $meses = ['Enero', 'Febrero'];
+
+        for ($i = 1; $i <= $semanasPagar; $i++) {
+            $mesIdx = ($i <= 4) ? 0 : 1;
+            $semNum = ($i <= 4) ? $i : ($i - 4);
+            $mesNombre = $meses[$mesIdx];
+
+            // Fecha aleatoria en ese mes
+            $dia = $semNum * 7;
+            $mesNum = $mesIdx + 1;
+            $fecha = date("Y-$mesNum-$dia 12:00:00");
+
+            $desc = "Abono correspondente a Semana $semNum de $mesNombre";
+
+            $stmtMov->execute([$sId, 'aportacion', $montoSemanal, $desc, $fecha]);
+            $totalAportado += $montoSemanal;
+        }
+
+        // Update saldo
+        $pdo->exec("UPDATE socios SET saldo_total = $totalAportado WHERE id = $sId");
     }
-    // Actualizar saldo
-    $pdo->exec("UPDATE socios SET saldo_total = $totalAportado WHERE id = $socioId");
-    echo "Aportaciones registradas para Juan Pérez.\n";
+    echo "10 Socios y aportaciones creados.\n";
 
-    // 7. Crear un Préstamo para Juan Pérez
-    // Préstamo de $1000 a 10% en 4 semanas. Total $1100.
+    // 4. Préstamos
     $stmtPrestamo = $pdo->prepare("INSERT INTO prestamos (socio_id, monto, monto_total_pagar, pagado, estado, plazo_semanas, fecha_inicio) VALUES (?, ?, ?, ?, ?, ?, CURDATE())");
-    $stmtPrestamo->execute([$socioId, 1000, 1100, 0, 'activo', 4]);
-    $prestamoId = $pdo->lastInsertId();
 
-    // Registrar salida de dinero (Prestamo Otorgado)
-    $stmtMov->execute([$socioId, 'prestamo_otorgado', 1000, "Préstamo ID $prestamoId otorgado", date('Y-m-d H:i:s')]);
+    // Prestamo Activo (Juan)
+    $stmtPrestamo->execute([$sociosIds[0], 2000, 2200, 500, 'activo', 8]);
 
-    echo "Préstamo creado para Juan Pérez.\n";
+    // Prestamo Pagado (Maria)
+    $stmtPrestamo->execute([$sociosIds[1], 1000, 1100, 1100, 'pagado', 4]);
+
+    // Prestamo Nuevo (Pedro)
+    $stmtPrestamo->execute([$sociosIds[2], 5000, 5500, 0, 'activo', 12]);
+
+    echo "Préstamos creados.\n";
+
+    // 5. Avisos
+    $pdo->exec("INSERT INTO avisos (titulo, contenido, prioridad) VALUES ('Bienvenida', 'Bienvenidos al sistema v2. Recuerden pagar a tiempo.', 'alta')");
 
     $pdo->commit();
     echo "Datos sembrados correctamente.\n";
