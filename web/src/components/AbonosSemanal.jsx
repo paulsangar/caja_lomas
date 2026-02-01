@@ -13,6 +13,7 @@ const AbonosSemanal = () => {
     const [filterName, setFilterName] = useState('');
 
     const nombresMeses = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
+    const mesesCortos = ["ENE", "FEB", "MAR", "ABR", "MAY", "JUN", "JUL", "AGO", "SEP", "OCT", "NOV", "DIC"];
 
     const fetchDatos = async () => {
         setLoading(true);
@@ -38,12 +39,13 @@ const AbonosSemanal = () => {
         setSelectedPayments([]); // Reset selection on month/data change
     }, [mes, anio]);
 
-    // Semanas del mes
+    // Generar cabeceras tipo "ENE 1", "ENE 2"
+    const mesCorto = mesesCortos[mes];
     const semanas = [
-        { id: 1, label: 'Sem 1', subLabel: '01-07' },
-        { id: 2, label: 'Sem 2', subLabel: '08-14' },
-        { id: 3, label: 'Sem 3', subLabel: '15-21' },
-        { id: 4, label: 'Sem 4', subLabel: '22-Fin' }
+        { id: 1, label: `${mesCorto} 1`, subLabel: '01-07' },
+        { id: 2, label: `${mesCorto} 2`, subLabel: '08-14' },
+        { id: 3, label: `${mesCorto} 3`, subLabel: '15-21' },
+        { id: 4, label: `${mesCorto} 4`, subLabel: '22-Fin' }
     ];
 
     const checkPago = (socioId, semanaId) => {
@@ -55,6 +57,8 @@ const AbonosSemanal = () => {
         );
     };
 
+    const isSelected = (socioId, semanaId) => selectedPayments.includes(`${socioId}-${semanaId}`);
+
     // Lógica secuencial estricta
     const puedePagar = (socioId, semanaId) => {
         if (semanaId === 1) return true;
@@ -65,43 +69,32 @@ const AbonosSemanal = () => {
         return pagadaAnterior || seleccionadaAnterior;
     };
 
-    // --- Batch Logic ---
     const toggleSelection = (socioId, semanaId) => {
-        // Si intentamos seleccionar, validar orden
-        if (!processSelectionValidation(socioId, semanaId)) return;
+        const pagado = checkPago(socioId, semanaId);
+        if (pagado) return; // Ya pagado, no hacer nada
 
-        const key = `${socioId}-${semanaId}`;
-        setSelectedPayments(prev =>
-            prev.includes(key) ? prev.filter(k => k !== key) : [...prev, key]
-        );
-    };
+        const currentlySelected = isSelected(socioId, semanaId);
 
-    // Valida si se puede seleccionar/deseleccionar manteniendo coherencia
-    const processSelectionValidation = (socioId, semanaId) => {
-        const isCurrentlySelected = isSelected(socioId, semanaId);
-
-        if (!isCurrentlySelected) {
-            // Para seleccionar: Validar que sea la siguiente inmediata disponible
+        if (!currentlySelected) {
+            // Intentando SELECCIONAR
             if (!puedePagar(socioId, semanaId)) {
-                alert("Debes pagar las semanas anteriores primero.");
-                return false;
+                // Feedback visual simple (shake o alert opcional, aquí solo bloqueo)
+                return;
             }
+            setSelectedPayments(prev => [...prev, `${socioId}-${semanaId}`]);
         } else {
-            // Para deseleccionar: Validar que no haya semanas posteriores seleccionadas
-            // Si deselecciono la Sem 2, y la Sem 3 está seleccionada, debería deseleccionar la 3 también
-            // Por simplicidad, permitimos deseleccionar, pero el usuario debe ser cuidadoso.
-            // O mejor: Si deseleccionas, deselecciona todas las posteriores de ese usuario.
-            const hasNextSelected = isSelected(socioId, semanaId + 1);
-            if (hasNextSelected) {
-                // Auto deseleccionar las siguientes recursivamente? 
-                // Implementación simple: Deseleccionar solo esta y dejar que el usuario arregle, 
-                // pero handleBatchPayment validará orden.
-            }
+            // Intentando DESELECCIONAR
+            // Si deselecciono una semana intermedia, debo deseleccionar todas las posteriores de este mes
+            // para mantener la integridad secuencial.
+            const newSelection = selectedPayments.filter(key => {
+                const [sId, sSem] = key.split('-').map(Number);
+                if (sId !== socioId) return true; // Mantener otros socios
+                // Para este socio, mantener solo si la semana es MENOR a la deseleccionada
+                return sSem < semanaId;
+            });
+            setSelectedPayments(newSelection);
         }
-        return true;
     };
-
-    const isSelected = (socioId, semanaId) => selectedPayments.includes(`${socioId}-${semanaId}`);
 
     const handleBatchPayment = async () => {
         if (selectedPayments.length === 0) return;
@@ -115,7 +108,7 @@ const AbonosSemanal = () => {
         const pagosOrdenados = [...selectedPayments].sort((a, b) => {
             const [idA, semA] = a.split('-').map(Number);
             const [idB, semB] = b.split('-').map(Number);
-            return semA - semB; // Orden ascendente por semana
+            return semA - semB;
         });
 
         for (const key of pagosOrdenados) {
@@ -123,7 +116,7 @@ const AbonosSemanal = () => {
             const socio = socios.find(s => s.id === socioId);
             if (!socio) continue;
 
-            const cupos = parseInt(socio.cupos) || 1; // Fallback para NaN
+            const cupos = parseInt(socio.cupos) || 1;
             const monto = cupos * 100;
 
             try {
@@ -164,28 +157,30 @@ const AbonosSemanal = () => {
                         </h2>
                         <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>$100.00 MXN por cupo registrado</p>
                     </div>
-
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', background: 'white', padding: '5px 15px', borderRadius: '10px', border: '1px solid var(--border)' }}>
-                        <button onClick={() => setMes(m => m === 0 ? 11 : m - 1)} style={{ background: 'none', border: 'none', cursor: 'pointer' }}><ChevronLeft size={20} /></button>
-                        <span style={{ fontWeight: '600', minWidth: '100px', textAlign: 'center' }}>{nombresMeses[mes]} {anio}</span>
-                        <button onClick={() => setMes(m => m === 11 ? 0 : m + 1)} style={{ background: 'none', border: 'none', cursor: 'pointer' }}><ChevronRight size={20} /></button>
-                    </div>
                 </div>
 
-                <div style={{ display: 'flex', gap: '15px', alignItems: 'center', flexWrap: 'wrap' }}>
-                    <div style={{ position: 'relative', flex: 1, minWidth: '200px' }}>
-                        <Search size={18} style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
+                <div style={{ display: 'flex', gap: '15px', alignItems: 'center', flexWrap: 'wrap', background: 'white', padding: '15px', borderRadius: '12px', border: '1px solid var(--border)' }}>
+                    {/* Navegación Mes */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '5px', marginRight: 'auto' }}>
+                        <button onClick={() => setMes(m => m === 0 ? 11 : m - 1)} className="btn-secondary" style={{ padding: '5px 10px' }}><ChevronLeft size={16} /></button>
+                        <span style={{ fontWeight: '700', minWidth: '120px', textAlign: 'center', fontSize: '1rem' }}>{nombresMeses[mes]} {anio}</span>
+                        <button onClick={() => setMes(m => m === 11 ? 0 : m + 1)} className="btn-secondary" style={{ padding: '5px 10px' }}><ChevronRight size={16} /></button>
+                    </div>
+
+                    <div style={{ position: 'relative', flex: 1, minWidth: '200px', maxWidth: '300px' }}>
+                        <Search size={16} style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
                         <input
                             type="text"
-                            placeholder="Buscar socio por nombre o ID..."
+                            placeholder="Buscar socio..."
                             value={filterName}
                             onChange={(e) => setFilterName(e.target.value)}
                             style={{
-                                padding: '10px 10px 10px 35px',
-                                borderRadius: '8px',
+                                padding: '8px 8px 8px 32px',
+                                borderRadius: '6px',
                                 border: '1px solid var(--border)',
                                 width: '100%',
-                                outline: 'none'
+                                outline: 'none',
+                                fontSize: '0.9rem'
                             }}
                         />
                     </div>
@@ -194,9 +189,9 @@ const AbonosSemanal = () => {
                         <button
                             onClick={handleBatchPayment}
                             className="btn-primary"
-                            style={{ background: 'var(--success)', animation: 'pulse 2s infinite', display: 'flex', alignItems: 'center', gap: '8px', whiteSpace: 'nowrap' }}
+                            style={{ padding: '8px 15px', fontSize: '0.85rem' }}
                         >
-                            <DollarSign size={18} /> Pagar ({selectedPayments.length})
+                            Pagar ({selectedPayments.length})
                         </button>
                     )}
                 </div>
@@ -211,16 +206,16 @@ const AbonosSemanal = () => {
                                     position: 'sticky', left: 0, zIndex: 30, background: '#f8fafc',
                                     borderBottom: '1px solid var(--border)',
                                     borderRight: '1px solid var(--border)',
-                                    padding: '15px', textAlign: 'left', minWidth: '180px'
-                                }}>Socio</th>
-                                <th style={{ textAlign: 'center', padding: '10px', borderBottom: '1px solid var(--border)' }}>Cuota</th>
+                                    padding: '10px', textAlign: 'left', minWidth: '160px',
+                                    fontSize: '0.75rem'
+                                }}>SOCIO</th>
+                                <th style={{ textAlign: 'center', padding: '10px 5px', borderBottom: '1px solid var(--border)', fontSize: '0.7rem', width: '70px' }}>CUOTA</th>
                                 {semanas.map(s => (
-                                    <th key={s.id} style={{ textAlign: 'center', padding: '10px', borderBottom: '1px solid var(--border)' }}>
-                                        <div>{s.label}</div>
-                                        <div style={{ fontSize: '0.65rem', fontWeight: '400', color: '#94a3b8' }}>{s.subLabel}</div>
+                                    <th key={s.id} style={{ textAlign: 'center', padding: '10px 5px', borderBottom: '1px solid var(--border)', width: '80px' }}>
+                                        <div style={{ fontWeight: '800', color: 'var(--primary)', fontSize: '0.75rem' }}>{s.label}</div>
                                     </th>
                                 ))}
-                                <th style={{ textAlign: 'center', padding: '10px', borderBottom: '1px solid var(--border)' }}>%</th>
+                                <th style={{ textAlign: 'center', padding: '10px', borderBottom: '1px solid var(--border)', width: '60px' }}>%</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -236,60 +231,55 @@ const AbonosSemanal = () => {
                                     return (
                                         <tr key={socio.id} className="table-row-hover">
                                             <td style={{
-                                                fontWeight: '500', padding: '15px',
+                                                fontWeight: '500', padding: '10px 15px',
                                                 position: 'sticky', left: 0, background: 'white', zIndex: 10,
                                                 borderRight: '1px solid var(--border)', borderBottom: '1px solid #f1f5f9'
                                             }}>
-                                                <div style={{ color: 'var(--primary-dark)', fontWeight: 'bold' }}>{socio.nombre_completo}</div>
-                                                <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-                                                    ID: {socio.numero_socio} • {cupos} cupo(s)
+                                                <div style={{ color: 'var(--primary-dark)', fontWeight: 'bold', fontSize: '0.85rem' }}>{socio.nombre_completo}</div>
+                                                <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
+                                                    {socio.numero_socio} • {cupos}c
                                                 </div>
                                             </td>
-                                            <td style={{ textAlign: 'center', fontWeight: '600', color: 'var(--text-main)', borderBottom: '1px solid #f1f5f9' }}>
+                                            <td style={{ textAlign: 'center', fontWeight: '600', color: 'var(--text-main)', borderBottom: '1px solid #f1f5f9', fontSize: '0.85rem' }}>
                                                 ${montoSemanal}
                                             </td>
                                             {semanas.map(sem => {
                                                 const pagado = checkPago(socio.id, sem.id);
-                                                // Permitir seleccionar si es la siguiente inmediata (pagadaAnterior es true) 
-                                                // O si la anterior esta seleccionada en este batch.
-                                                // La función puedePagar ya maneja esto.
                                                 const habilitado = !pagado && puedePagar(socio.id, sem.id);
+                                                const selected = isSelected(socio.id, sem.id);
 
                                                 if (pagado) pagosCount++;
 
                                                 return (
-                                                    <td key={sem.id} style={{ textAlign: 'center', padding: '10px', borderBottom: '1px solid #f1f5f9' }}>
+                                                    <td key={sem.id} style={{ textAlign: 'center', padding: '8px', borderBottom: '1px solid #f1f5f9' }}>
                                                         {pagado ? (
                                                             <div style={{ color: 'var(--success)', display: 'flex', justifyContent: 'center' }}>
-                                                                <Check size={26} strokeWidth={3} />
+                                                                <Check size={20} strokeWidth={4} />
                                                             </div>
                                                         ) : (
                                                             <div
-                                                                onClick={() => habilitado && toggleSelection(socio.id, sem.id)}
+                                                                onClick={() => toggleSelection(socio.id, sem.id)}
                                                                 style={{
-                                                                    width: '32px', height: '32px',
-                                                                    border: isSelected(socio.id, sem.id) ? '2px solid var(--primary)' : '2px solid #cbd5e1',
-                                                                    borderRadius: '8px',
+                                                                    width: '24px', height: '24px',
+                                                                    border: selected ? '2px solid var(--primary)' : '2px solid #cbd5e1',
+                                                                    borderRadius: '6px',
                                                                     margin: '0 auto',
                                                                     cursor: habilitado ? 'pointer' : 'not-allowed',
-                                                                    background: isSelected(socio.id, sem.id) ? 'var(--primary)' : (habilitado ? 'white' : '#f8fafc'),
+                                                                    background: selected ? 'var(--primary)' : (habilitado ? 'white' : '#f1f5f9'),
                                                                     display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                                                    transition: 'all 0.2s',
-                                                                    opacity: habilitado ? 1 : 0.4
+                                                                    transition: 'all 0.1s',
+                                                                    opacity: habilitado || selected ? 1 : 0.3
                                                                 }}
                                                             >
-                                                                {isSelected(socio.id, sem.id) && <Check size={20} color="white" />}
+                                                                {selected && <Check size={14} color="white" />}
                                                             </div>
                                                         )}
                                                     </td>
                                                 );
                                             })}
                                             <td style={{ textAlign: 'center', borderBottom: '1px solid #f1f5f9' }}>
-                                                <div style={{ width: '80%', height: '6px', background: '#e2e8f0', borderRadius: '10px', margin: '0 auto' }}>
+                                                <div style={{ width: '40px', height: '6px', background: '#e2e8f0', borderRadius: '10px', margin: '0 auto' }}>
                                                     <div style={{ width: `${(pagosCount / semanas.length) * 100}%`, height: '100%', background: 'var(--success)', borderRadius: '10px' }}></div>
-                                                </div>
-                                                <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginTop: '4px' }}>
-                                                    {pagosCount}/{semanas.length}
                                                 </div>
                                             </td>
                                         </tr>

@@ -1,4 +1,3 @@
-```javascript
 import React, { useState, useEffect } from 'react';
 import { Landmark, Plus, ChevronDown, ChevronUp, AlertCircle, CheckCircle, Clock } from 'lucide-react';
 import PrestamoForm from './PrestamoForm';
@@ -12,8 +11,8 @@ const Prestamos = ({ user }) => {
     const fetchPrestamos = async () => {
         setLoading(true);
         try {
-            const query = (user && user.rol !== 'admin') ? `? usuario_id = ${ user.id } ` : '';
-            const response = await fetch(`./ api / prestamos / list.php${ query } `);
+            const query = (user && user.rol !== 'admin') ? `?usuario_id=${user.id}` : '';
+            const response = await fetch(`./api/prestamos/list.php${query}`);
             const data = await response.json();
             if (data.success) {
                 setPrestamos(data.data);
