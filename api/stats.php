@@ -22,11 +22,11 @@ try {
     $stats['total_socios'] = (int) $stmt->fetch()['total'];
 
     // Préstamos Activos
-    $sqlPrestamos = "SELECT COUNT(*) as total, SUM(saldo_pendiente) as monto FROM prestamos p JOIN socios s ON p.socio_id = s.id";
+    $sqlPrestamos = "SELECT COUNT(*) as total, SUM(monto_total_pagar - pagado) as monto FROM prestamos p JOIN socios s ON p.socio_id = s.id";
     if ($usuario_id) {
-        $sqlPrestamos .= " WHERE s.usuario_id = " . intval($usuario_id) . " AND p.estatus = 'aprobado'";
+        $sqlPrestamos .= " WHERE s.usuario_id = " . intval($usuario_id) . " AND p.estado = 'activo'";
     } else {
-        $sqlPrestamos .= " WHERE p.estatus = 'aprobado'";
+        $sqlPrestamos .= " WHERE p.estado = 'activo'";
     }
     $stmt = $pdo->query($sqlPrestamos);
     $row = $stmt->fetch();
