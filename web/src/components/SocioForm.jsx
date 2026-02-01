@@ -112,7 +112,7 @@ const SocioForm = ({ onClose, onSuccess }) => {
                 </h2>
 
                 <form onSubmit={handleSubmit}>
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+                    <div className="form-grid">
                         <div style={{ gridColumn: 'span 2' }}>
                             <h3 style={{ fontSize: '0.9rem', color: 'var(--text-muted)', marginBottom: '10px', borderBottom: '1px solid var(--border)', paddingBottom: '5px' }}>Datos Personales</h3>
                         </div>
