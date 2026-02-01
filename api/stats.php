@@ -17,8 +17,8 @@ try {
     $stmt = $pdo->query("SELECT SUM(saldo_total) as total FROM socios $whereSocio");
     $stats['saldo_total'] = (float) $stmt->fetch()['total'] ?? 0;
 
-    // Total Socios (Simplemente devuelve 1 si es usuario normal, o total si es admin/sin filtro)
-    $stmt = $pdo->query("SELECT COUNT(*) as total FROM socios $whereSocio");
+    // Total Socios (Siempre global)
+    $stmt = $pdo->query("SELECT COUNT(*) as total FROM socios");
     $stats['total_socios'] = (int) $stmt->fetch()['total'];
 
     // Préstamos Activos
