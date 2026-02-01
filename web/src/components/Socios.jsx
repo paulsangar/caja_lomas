@@ -148,21 +148,36 @@ const Socios = () => {
                                             ${parseFloat(socio.saldo_total).toLocaleString('es-MX', { minimumFractionDigits: 2 })}
                                         </td>
                                         <td style={{ padding: '15px 20px', textAlign: 'center' }}>
-                                            <button
-                                                onClick={() => setSelectedSocio(socio)}
-                                                title="Ver detalle completo"
-                                                className="btn-icon"
-                                                style={{
-                                                    background: 'white',
-                                                    border: '1px solid var(--border)',
-                                                    padding: '8px',
-                                                    borderRadius: '8px',
-                                                    color: 'var(--primary)',
-                                                    cursor: 'pointer'
-                                                }}
-                                            >
-                                                <MoreVertical size={18} />
-                                            </button>
+                                            <div style={{ display: 'flex', justifyContent: 'center', gap: '8px' }}>
+                                                <button
+                                                    onClick={() => {
+                                                        const newPass = prompt(`Resetear contraseña para ${socio.nombre_completo}?`, "123456");
+                                                        if (newPass) {
+                                                            // Aquí iría la llamada a API para reset (pendiente backend)
+                                                            alert("Funcionalidad de backend pendiente para password: " + newPass);
+                                                        }
+                                                    }}
+                                                    title="Resetear Contraseña"
+                                                    className="btn-icon"
+                                                    style={{
+                                                        background: '#fff7ed', border: '1px solid #ffedd5',
+                                                        padding: '6px', borderRadius: '6px', color: '#ea580c', cursor: 'pointer'
+                                                    }}
+                                                >
+                                                    <span style={{ fontSize: '0.9rem' }}>🔑</span>
+                                                </button>
+                                                <button
+                                                    onClick={() => setSelectedSocio(socio)}
+                                                    title="Ver Detalle"
+                                                    className="btn-icon"
+                                                    style={{
+                                                        background: '#eff6ff', border: '1px solid #dbeafe',
+                                                        padding: '6px', borderRadius: '6px', color: '#2563eb', cursor: 'pointer'
+                                                    }}
+                                                >
+                                                    <User size={16} />
+                                                </button>
+                                            </div>
                                         </td>
                                     </tr>
                                 ))

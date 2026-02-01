@@ -211,7 +211,13 @@ const Dashboard = ({ user, onLogout }) => {
                         { id: 'prestamos', icon: <Landmark size={20} />, label: 'Préstamos' },
                         { id: 'movimientos', icon: <History size={20} />, label: 'Historial' },
                         { id: 'config', icon: <Settings size={20} />, label: 'Config' }
-                    ].map(item => (
+                    ].filter(item => {
+                        // V5.1 RBAC: Ocultar Socios y Config a usuarios normales
+                        if (user.rol !== 'admin') {
+                            return item.id !== 'socios' && item.id !== 'config';
+                        }
+                        return true;
+                    }).map(item => (
                         <button
                             key={item.id}
                             onClick={() => setCurrentView(item.id)}
