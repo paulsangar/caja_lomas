@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { PlusCircle, Search, TrendingUp, TrendingDown, History } from 'lucide-react';
 
-const Movimientos = () => {
+const Movimientos = ({ user }) => {
     const [movimientos, setMovimientos] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
@@ -9,7 +9,8 @@ const Movimientos = () => {
     const fetchMovimientos = async () => {
         setLoading(true);
         try {
-            const response = await fetch('./api/movimientos/list.php');
+            const query = (user && user.rol !== 'admin') ? `?usuario_id=${user.id}` : '';
+            const response = await fetch(`./api/movimientos/list.php${query}`);
             const data = await response.json();
             if (data.success) {
                 setMovimientos(data.data);

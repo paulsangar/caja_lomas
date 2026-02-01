@@ -2,15 +2,26 @@
 header('Content-Type: application/json');
 require_once __DIR__ . '/../config/db.php';
 
+$usuario_id = $_GET['usuario_id'] ?? null;
+
 try {
-    // Para esta fase de prueba rápida, devolvemos todo con nombres de socios
-    $stmt = $pdo->query("
+    $sql = "
         SELECT m.*, u.nombre_completo as socio_nombre, s.numero_socio 
         FROM movimientos m 
         JOIN socios s ON m.socio_id = s.id 
         JOIN usuarios u ON s.usuario_id = u.id 
-        ORDER BY m.fecha_operacion DESC
-    ");
+    ";
+
+    $params = [];
+    if ($usuario_id) {
+        $sql .= " WHERE u.id = ? ";
+        $params[] = $usuario_id;
+    }
+
+    $sql .= " ORDER BY m.fecha_operacion DESC";
+
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute($params);
     $movimientos = $stmt->fetchAll();
 
     echo json_encode(['success' => true, 'data' => $movimientos]);

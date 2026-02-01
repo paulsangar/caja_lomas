@@ -2,10 +2,10 @@
 header('Content-Type: application/json');
 require_once __DIR__ . '/../config/db.php';
 
+$usuario_id = $_GET['usuario_id'] ?? null;
+
 try {
-    // Calculamos el monto pagado sumando los movimientos de tipo 'pago_prestamo' para el socio
-    // NOTA: Esta versión es simplificada. En una versión real filtraríamos por ID de préstamo si existiera la relación directa en movimientos.
-    $stmt = $pdo->query("
+    $sql = "
         SELECT 
             p.*, 
             u.nombre_completo as socio_nombre, 
@@ -14,8 +14,18 @@ try {
         FROM prestamos p 
         JOIN socios s ON p.socio_id = s.id 
         JOIN usuarios u ON s.usuario_id = u.id 
-        ORDER BY p.fecha_solicitud DESC
-    ");
+    ";
+
+    $params = [];
+    if ($usuario_id) {
+        $sql .= " WHERE u.id = ? ";
+        $params[] = $usuario_id;
+    }
+
+    $sql .= " ORDER BY p.fecha_solicitud DESC";
+
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute($params);
     $prestamos = $stmt->fetchAll();
 
     echo json_encode(['success' => true, 'data' => $prestamos]);

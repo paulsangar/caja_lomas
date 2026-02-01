@@ -21,11 +21,12 @@ const Dashboard = ({ user, onLogout }) => {
     const fetchStats = async () => {
         setLoading(true);
         try {
-            const response = await fetch('./api/stats.php');
+            // Si no es admin, filtramos por su ID
+            const query = user.rol !== 'admin' ? `?usuario_id=${user.id}` : '';
+            const response = await fetch(`./api/stats.php${query}`);
             const data = await response.json();
             if (data.success) {
                 setStats(data.data);
-                // Mostrar avisos SOLO si NO es admin
                 if (user.rol !== 'admin' && data.data.avisos && data.data.avisos.length > 0) {
                     setShowNotices(true);
                 }
@@ -39,14 +40,14 @@ const Dashboard = ({ user, onLogout }) => {
 
     useEffect(() => {
         fetchStats();
-    }, [user.rol]);
+    }, [user]);
 
     const renderView = () => {
         switch (currentView) {
-            case 'socios': return <Socios />;
-            case 'movimientos': return <Movimientos />;
-            case 'prestamos': return <Prestamos />;
-            case 'abonos_semanal': return <AbonosSemanal />;
+            case 'socios': return <Socios user={user} />;
+            case 'movimientos': return <Movimientos user={user} />;
+            case 'prestamos': return <Prestamos user={user} />;
+            case 'abonos_semanal': return <AbonosSemanal user={user} />;
             case 'config': return <Configuracion user={user} />;
             case 'home':
             default:
