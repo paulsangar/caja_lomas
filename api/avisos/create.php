@@ -9,10 +9,11 @@ try {
         throw new Exception('Título y contenido son obligatorios');
     }
 
-    $stmt = $pdo->prepare("INSERT INTO avisos (titulo, contenido, prioridad, fecha_publicacion) VALUES (?, ?, ?, NOW())");
+    $stmt = $pdo->prepare("INSERT INTO avisos (titulo, contenido, destinatario_id, prioridad, fecha_publicacion) VALUES (?, ?, ?, ?, NOW())");
     $stmt->execute([
         $data['titulo'],
         $data['contenido'],
+        !empty($data['destinatario_id']) ? $data['destinatario_id'] : NULL,
         $data['prioridad'] ?? 'media'
     ]);
 

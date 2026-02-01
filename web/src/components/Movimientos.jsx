@@ -89,13 +89,19 @@ const Movimientos = ({ user }) => {
                                             <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Socio #{m.numero_socio}</div>
                                         </td>
                                         <td style={{ padding: '15px 20px' }}>
-                                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.85rem' }}>
-                                                {m.tipo === 'aportacion' ? <TrendingUp size={14} color="var(--success)" /> : <TrendingDown size={14} color="var(--danger)" />}
-                                                {m.tipo.charAt(0).toUpperCase() + m.tipo.slice(1).replace('_', ' ')}
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                                {m.tipo === 'aportacion' && <div title="Abono" style={{ padding: '4px', background: '#dcfce7', borderRadius: '50%', color: '#16a34a' }}><TrendingUp size={16} /></div>}
+                                                {m.tipo === 'retiro' && <div title="Retiro" style={{ padding: '4px', background: '#fee2e2', borderRadius: '50%', color: '#dc2626' }}><TrendingDown size={16} /></div>}
+                                                {m.tipo === 'prestamo_otorgado' && <div title="Préstamo" style={{ padding: '4px', background: '#ffedd5', borderRadius: '50%', color: '#ea580c' }}><TrendingDown size={16} /></div>}
+                                                {m.tipo === 'pago_prestamo' && <div title="Pago Préstamo" style={{ padding: '4px', background: '#e0e7ff', borderRadius: '50%', color: '#4f46e5' }}><TrendingUp size={16} /></div>}
+
+                                                <div style={{ textTransform: 'capitalize', fontWeight: '500' }}>
+                                                    {m.tipo.replace('_', ' ')}
+                                                </div>
                                             </div>
                                         </td>
-                                        <td style={{ padding: '15px 20px', fontSize: '0.85rem', color: 'var(--text-muted)', maxWidth: '250px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                                            {m.descripcion}
+                                        <td style={{ padding: '15px 20px', fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+                                            {m.descripcion || '-'}
                                         </td>
                                         <td style={{
                                             padding: '15px 20px',

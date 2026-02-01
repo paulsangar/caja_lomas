@@ -12,18 +12,25 @@ const Configuracion = ({ user }) => {
     });
 
     // Avisos State
-    const [avisos, setAvisos] = useState([]);
-    const [showAvisoForm, setShowAvisoForm] = useState(false);
-    const [avisoData, setAvisoData] = useState({ titulo: '', contenido: '', prioridad: 'media' });
+    const [socios, setSocios] = useState([]);
 
     useEffect(() => {
-        if (activeTab === 'avisos') fetchAvisos();
+        if (activeTab === 'avisos') {
+            fetchAvisos();
+            fetchSocios();
+        }
     }, [activeTab]);
 
     const fetchAvisos = () => {
         fetch('./api/avisos/list.php')
             .then(res => res.json())
             .then(data => data.success && setAvisos(data.data));
+    };
+
+    const fetchSocios = () => {
+        fetch('./api/socios/list.php')
+            .then(res => res.json())
+            .then(data => data.success && setSocios(data.data));
     };
 
     const handleUpdateProfile = async (e) => {
@@ -123,13 +130,27 @@ const Configuracion = ({ user }) => {
                                 <button onClick={() => setShowAvisoForm(false)} style={{ background: 'none', border: 'none', cursor: 'pointer' }}><X size={18} /></button>
                             </div>
                             <form onSubmit={handleCreateAviso} style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                                <input
-                                    placeholder="Título"
-                                    value={avisoData.titulo}
-                                    onChange={e => setAvisoData({ ...avisoData, titulo: e.target.value })}
-                                    style={{ padding: '10px', borderRadius: '8px', border: '1px solid var(--border)' }}
-                                    required
-                                />
+                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                                    <input
+                                        placeholder="Título"
+                                        value={avisoData.titulo}
+                                        onChange={e => setAvisoData({ ...avisoData, titulo: e.target.value })}
+                                        style={{ padding: '10px', borderRadius: '8px', border: '1px solid var(--border)' }}
+                                        required
+                                    />
+                                    <select
+                                        value={avisoData.destinatario_id || ''}
+                                        onChange={e => setAvisoData({ ...avisoData, destinatario_id: e.target.value })}
+                                        style={{ padding: '10px', borderRadius: '8px', border: '1px solid var(--border)' }}
+                                    >
+                                        <option value="">Todos (General)</option>
+                                        {socios.map(s => (
+                                            <option key={s.id} value={s.usuario_id}>
+                                                {s.nombre_completo}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
                                 <textarea
                                     placeholder="Mensaje"
                                     value={avisoData.contenido}
