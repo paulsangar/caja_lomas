@@ -39,9 +39,7 @@ const Movimientos = () => {
                 <h2 style={{ fontSize: '1.5rem', display: 'flex', alignItems: 'center', gap: '10px' }}>
                     <History color="var(--primary-light)" /> Historial de Movimientos
                 </h2>
-                <button className="btn-primary" style={{ display: 'flex', gap: '8px' }}>
-                    <PlusCircle size={18} /> Registrar Aporte
-                </button>
+                {/* Botón eliminado a petición del usuario */}
             </div>
 
             <div className="glass-panel" style={{ padding: '0', overflow: 'hidden' }}>
