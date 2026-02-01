@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { UserPlus, Search, MoreVertical, ExternalLink } from 'lucide-react';
+import { UserPlus, Search, MoreVertical, X, CreditCard, Phone, Calendar, User } from 'lucide-react';
 import SocioForm from './SocioForm';
 
 const Socios = () => {
@@ -7,6 +7,7 @@ const Socios = () => {
     const [loading, setLoading] = useState(true);
     const [showForm, setShowForm] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
+    const [selectedSocio, setSelectedSocio] = useState(null); // Para el modal de detalles
     const [sortConfig, setSortConfig] = useState({ key: 'numero_socio', direction: 'asc' });
 
     const fetchSocios = async () => {
@@ -148,19 +149,19 @@ const Socios = () => {
                                         </td>
                                         <td style={{ padding: '15px 20px', textAlign: 'center' }}>
                                             <button
-                                                onClick={() => alert(`Detalles del socio:\n\nBanco: ${socio.banco}\nCuenta: ${socio.numero_cuenta}\nNacimiento: ${socio.fecha_nacimiento}\nTeléfono: ${socio.telefono}`)}
+                                                onClick={() => setSelectedSocio(socio)}
                                                 title="Ver detalle completo"
+                                                className="btn-icon"
                                                 style={{
                                                     background: 'white',
                                                     border: '1px solid var(--border)',
-                                                    padding: '6px',
-                                                    borderRadius: '6px',
+                                                    padding: '8px',
+                                                    borderRadius: '8px',
                                                     color: 'var(--primary)',
-                                                    cursor: 'pointer',
-                                                    boxShadow: '0 1px 2px rgba(0,0,0,0.05)'
+                                                    cursor: 'pointer'
                                                 }}
                                             >
-                                                <MoreVertical size={16} />
+                                                <MoreVertical size={18} />
                                             </button>
                                         </td>
                                     </tr>
@@ -171,12 +172,67 @@ const Socios = () => {
                 </div>
             </div>
 
+            {/* Modal de Detalles */}
+            {selectedSocio && (
+                <div className="modal-overlay" style={{
+                    position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+                    background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 3000
+                }}>
+                    <div className="glass-panel animate-slide-up" style={{ width: '90%', maxWidth: '500px', padding: '0', overflow: 'hidden' }}>
+                        <div style={{ padding: '20px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#f8fafc' }}>
+                            <h3 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                <User size={20} color="var(--primary)" /> Detalle del Socio
+                            </h3>
+                            <button onClick={() => setSelectedSocio(null)} style={{ background: 'none', border: 'none', cursor: 'pointer' }}>
+                                <X size={24} color="var(--text-muted)" />
+                            </button>
+                        </div>
+                        <div style={{ padding: '30px' }}>
+                            <div style={{ textAlign: 'center', marginBottom: '30px' }}>
+                                <div style={{ width: '80px', height: '80px', background: 'var(--primary-light)', color: 'var(--primary)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '2rem', fontWeight: 'bold', margin: '0 auto 15px' }}>
+                                    {selectedSocio.nombre_completo.charAt(0)}
+                                </div>
+                                <h2 style={{ fontSize: '1.4rem', marginBottom: '5px' }}>{selectedSocio.nombre_completo}</h2>
+                                <span style={{ background: '#eff6ff', color: 'var(--primary)', padding: '4px 12px', borderRadius: '15px', fontSize: '0.9rem', fontWeight: '600' }}>
+                                    Socio #{selectedSocio.numero_socio}
+                                </span>
+                            </div>
+
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+                                <div style={{ background: '#f8fafc', padding: '15px', borderRadius: '10px' }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '5px', color: 'var(--text-muted)', fontSize: '0.85rem' }}>
+                                        <CreditCard size={14} /> Banco
+                                    </div>
+                                    <div style={{ fontWeight: '500' }}>{selectedSocio.banco || 'No registrado'}</div>
+                                    <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{selectedSocio.numero_cuenta}</div>
+                                </div>
+                                <div style={{ background: '#f8fafc', padding: '15px', borderRadius: '10px' }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '5px', color: 'var(--text-muted)', fontSize: '0.85rem' }}>
+                                        <Phone size={14} /> Contacto
+                                    </div>
+                                    <div style={{ fontWeight: '500' }}>{selectedSocio.telefono || 'Sin teléfono'}</div>
+                                    <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{selectedSocio.email}</div>
+                                </div>
+                                <div style={{ background: '#f8fafc', padding: '15px', borderRadius: '10px', gridColumn: 'span 2' }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '5px', color: 'var(--text-muted)', fontSize: '0.85rem' }}>
+                                        <Calendar size={14} /> Fecha de Nacimiento
+                                    </div>
+                                    <div style={{ fontWeight: '500' }}>{selectedSocio.fecha_nacimiento ? new Date(selectedSocio.fecha_nacimiento).toLocaleDateString() : 'No registrada'}</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div style={{ padding: '20px', background: '#f8fafc', borderTop: '1px solid var(--border)', textAlign: 'right' }}>
+                            <button className="btn-secondary" onClick={() => setSelectedSocio(null)}>Cerrar</button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             {showForm && (
                 <SocioForm
                     onClose={() => setShowForm(false)}
                     onSuccess={() => {
                         fetchSocios();
-                        // TODO: Mostrar notificación de éxito
                     }}
                 />
             )}

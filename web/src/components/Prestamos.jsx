@@ -79,7 +79,7 @@ const Prestamos = () => {
                                 const style = getStatusStyle(p.estado);
                                 const monto = parseFloat(p.monto);
                                 const total = parseFloat(p.monto_total_pagar);
-                                const pagado = parseFloat(p.pagado);
+                                const pagado = parseFloat(p.monto_pagado || 0);
 
                                 return (
                                     <React.Fragment key={p.id}>
