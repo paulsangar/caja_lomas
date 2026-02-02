@@ -21,8 +21,8 @@ try {
     $stmt = $pdo->query("SELECT COUNT(*) as total FROM socios");
     $stats['total_socios'] = (int) $stmt->fetch()['total'];
 
-    // Préstamos Activos
-    $sqlPrestamos = "SELECT COUNT(*) as total, SUM(monto_total_pagar - pagado) as monto FROM prestamos p JOIN socios s ON p.socio_id = s.id";
+    // Préstamos Activos (Corrección V5.3: Usar 'monto' si 'monto_total_pagar' no existe)
+    $sqlPrestamos = "SELECT COUNT(*) as total, SUM(monto - pagado) as monto FROM prestamos p JOIN socios s ON p.socio_id = s.id";
     if ($usuario_id) {
         $sqlPrestamos .= " WHERE s.usuario_id = " . intval($usuario_id) . " AND p.estado = 'activo'";
     } else {

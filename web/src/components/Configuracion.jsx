@@ -13,6 +13,9 @@ const Configuracion = ({ user }) => {
 
     // Avisos State
     const [socios, setSocios] = useState([]);
+    const [avisos, setAvisos] = useState([]);
+    const [showAvisoForm, setShowAvisoForm] = useState(false);
+    const [avisoData, setAvisoData] = useState({ titulo: '', contenido: '', destinatario_id: '', prioridad: 'media' });
 
     useEffect(() => {
         if (activeTab === 'avisos') {

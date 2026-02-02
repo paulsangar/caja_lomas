@@ -176,7 +176,7 @@ const Dashboard = ({ user, onLogout }) => {
                             borderRadius: '12px',
                             fontWeight: 'bold',
                             textTransform: 'uppercase'
-                        }}>Administrador</span>
+                        }}>{user.rol}</span>
                     </div>
 
                     <button onClick={onLogout} style={{
