@@ -303,8 +303,10 @@ const Dashboard = ({ user, onLogout }) => {
                             <LogOut size={20} />
                         </button>
                     </div>
+                </div>
+                </div>
 
-                    <nav className="main-nav" style={{
+                <nav className="main-nav" style={{
                         display: 'flex',
                         gap: '5px',
                         overflowX: 'auto',
@@ -345,10 +347,10 @@ const Dashboard = ({ user, onLogout }) => {
                             </button>
                         ))}
                     </nav>
-            </header>
+            </header >
 
-            <main>{renderView()}</main>
-        </div>
+    <main>{renderView()}</main>
+        </div >
     );
 };
 
