@@ -291,8 +291,12 @@ const AbonosSemanal = ({ user }) => {
                                                 borderRight: '1px solid var(--border)', borderBottom: '1px solid #f1f5f9'
                                             }}>
                                                 <div style={{ color: 'var(--primary-dark)', fontWeight: 'bold', fontSize: '0.85rem' }}>{socio.nombre_completo}</div>
-                                                <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
-                                                    {socio.numero_socio} • {socio.cupos}c
+                                                <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', display: 'flex', gap: '5px' }}>
+                                                    <span>{socio.numero_socio}</span>
+                                                    <span>•</span>
+                                                    <span style={{ color: 'var(--primary)', fontWeight: '600' }}>
+                                                        {socio.cupos || 1} cupos (${(socio.cupos || 1) * 100}/sem)
+                                                    </span>
                                                 </div>
                                             </td>
 
