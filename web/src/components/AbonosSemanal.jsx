@@ -146,16 +146,23 @@ const AbonosSemanal = ({ user }) => {
             return idxA - idxB;
         });
 
+        console.log('🔹 Procesando pagos:', pagosOrdenados.length);
+
         for (const key of pagosOrdenados) {
             const [socioId, colId] = key.split('|');
             const colData = columnas.find(c => c.id === colId);
             const socio = socios.find(s => s.id == socioId);
 
-            if (!socio || !colData) continue;
+            if (!socio || !colData) {
+                console.warn('⚠️ Socio o columna no encontrada:', { socioId, colId });
+                continue;
+            }
 
             const cupos = parseInt(socio.cupos) || 1;
             const monto = cupos * 100;
             const descripcion = `Abono correspondiente a Semana ${colData.semanaNum} de ${nombresMeses[colData.mesIndex]}`;
+
+            console.log(`💰 Enviando pago para ${socio.nombre_completo}:`, { monto, cupos, descripcion });
 
             try {
                 const response = await fetch('./api/movimientos/create.php', {
@@ -170,16 +177,20 @@ const AbonosSemanal = ({ user }) => {
                 });
 
                 const data = await response.json();
+                console.log(`📨 Respuesta API para ${socio.nombre_completo}:`, data);
+
                 if (data.success) {
                     successCount++;
                 } else {
                     errors.push(`${socio.nombre_completo}: ${data.message}`);
                 }
             } catch (e) {
-                console.error("Error paying " + key, e);
+                console.error("❌ Error paying " + key, e);
                 errors.push(`${socio.nombre_completo}: Error de conexión`);
             }
         }
+
+        console.log('✅ Pagos procesados:', successCount, '| Errores:', errors.length);
 
         if (errors.length > 0) {
             alert(`Procesados: ${successCount}\nErrores:\n${errors.join('\n')}`);
@@ -190,7 +201,9 @@ const AbonosSemanal = ({ user }) => {
         setSelectedPayments([]);
         // IMPORTANTE: Limpiar el estado de movimientos local para forzar que checkPago use los nuevos datos
         setMovimientos([]);
+        console.log('🔄 Recargando datos...');
         await fetchDatos();
+        console.log('✅ Datos recargados');
         setIsSaving(false);
     };
 

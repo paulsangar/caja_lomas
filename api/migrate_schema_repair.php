@@ -30,7 +30,10 @@ try {
     addColumnIfNotExists($pdo, 'prestamos', 'monto', "DECIMAL(15, 2) NOT NULL AFTER socio_id", $messages, $hasErrors);
     addColumnIfNotExists($pdo, 'prestamos', 'monto_total_pagar', "DECIMAL(15, 2) NOT NULL AFTER monto", $messages, $hasErrors);
     addColumnIfNotExists($pdo, 'prestamos', 'pagado', "DECIMAL(15, 2) DEFAULT 0.00 AFTER monto_total_pagar", $messages, $hasErrors);
+    addColumnIfNotExists($pdo, 'prestamos', 'estado', "ENUM('activo', 'pagado', 'vencido') DEFAULT 'activo'", $messages, $hasErrors);
     addColumnIfNotExists($pdo, 'prestamos', 'plazo_semanas', "INT NOT NULL DEFAULT 12", $messages, $hasErrors);
+    addColumnIfNotExists($pdo, 'prestamos', 'fecha_inicio', "TIMESTAMP DEFAULT CURRENT_TIMESTAMP", $messages, $hasErrors);
+    addColumnIfNotExists($pdo, 'prestamos', 'fecha_fin', "TIMESTAMP NULL", $messages, $hasErrors);
 
     // 2. Reparar Tabla SOCIOS
     $messages[] = "Verificando tabla SOCIOS...";

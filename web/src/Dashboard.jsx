@@ -44,79 +44,120 @@ const Dashboard = ({ user, onLogout }) => {
 
     const renderView = () => {
         switch (currentView) {
-            case 'socios': return <Socios user={user} />;
-            case 'movimientos': return <Movimientos user={user} />;
+            case 'socios':
+                // RBAC: Solo admin puede ver socios
+                if (user.rol !== 'admin') {
+                    setCurrentView('home');
+                    return null;
+                }
+                return <Socios user={user} />;
+            case 'movimientos':
+                // RBAC: Solo admin puede ver el historial completo
+                if (user.rol !== 'admin') {
+                    setCurrentView('home');
+                    return null;
+                }
+                return <Movimientos user={user} />;
             case 'prestamos': return <Prestamos user={user} />;
             case 'abonos_semanal': return <AbonosSemanal user={user} />;
-            case 'config': return <Configuracion user={user} />;
+            case 'config':
+                // RBAC: Solo admin puede ver config
+                if (user.rol !== 'admin') {
+                    setCurrentView('home');
+                    return null;
+                }
+                return <Configuracion user={user} />;
             case 'home':
             default:
                 return (
                     <div className="animate-fade-in">
-                        {/* Stats Grid */}
-                        <div style={{
-                            display: 'grid',
-                            gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-                            gap: '24px',
-                            marginBottom: '40px'
-                        }}>
-                            <div className="glass-panel clickable-card" onClick={() => setCurrentView('movimientos')} style={{ padding: '24px' }}>
-                                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px' }}>
-                                    <Wallet color="var(--primary-light)" />
-                                    <span style={{ color: 'var(--success)', fontSize: '0.8rem' }}>{loading ? '...' : 'Actualizado'}</span>
-                                </div>
-                                <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>Saldo Total en Caja</p>
-                                <h2 style={{ fontSize: '2rem', marginTop: '8px' }}>
-                                    ${parseFloat(stats.saldo_total).toLocaleString('es-MX', { minimumFractionDigits: 2 })}
-                                </h2>
-                            </div>
-
-                            <div className="glass-panel clickable-card" onClick={() => setCurrentView('prestamos')} style={{ padding: '24px' }}>
-                                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px' }}>
-                                    <Landmark color="var(--warning)" />
-                                </div>
-                                <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>Préstamos Activos</p>
-                                <h2 style={{ fontSize: '2rem', marginTop: '8px' }}>{stats.prestamos_activos}</h2>
-                            </div>
-
-                            <div className="glass-panel clickable-card" onClick={() => setCurrentView('socios')} style={{ padding: '24px' }}>
-                                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px' }}>
-                                    <Users color="var(--primary-light)" />
-                                    <ChevronRight size={18} color="var(--text-muted)" />
-                                </div>
-                                <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>Total Socios</p>
-                                <h2 style={{ fontSize: '2rem', marginTop: '8px' }}>{stats.total_socios}</h2>
-                            </div>
-                        </div>
-
-                        {/* Recent Activity */}
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '24px' }}>
-                            <div className="glass-panel" style={{ padding: '24px' }}>
-                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-                                    <h3>Movimientos Recientes</h3>
-                                    <button onClick={() => setCurrentView('movimientos')} style={{ background: 'transparent', border: 'none', color: 'var(--primary)', fontSize: '0.85rem', fontWeight: '600', cursor: 'pointer' }}>Ver historial</button>
-                                </div>
-                                {stats.recientes.length === 0 ? (
-                                    <div style={{ padding: '40px', textAlign: 'center', background: '#f8fafc', borderRadius: '12px' }}>
-                                        <p style={{ color: 'var(--text-muted)' }}>No hay movimientos registrados.</p>
+                        {user.rol === 'admin' ? (
+                            <>
+                                {/* Stats Grid (ADMIN ONLY) */}
+                                <div style={{
+                                    display: 'grid',
+                                    gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+                                    gap: '24px',
+                                    marginBottom: '40px'
+                                }}>
+                                    <div className="glass-panel clickable-card" onClick={() => setCurrentView('movimientos')} style={{ padding: '24px' }}>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px' }}>
+                                            <Wallet color="var(--primary-light)" />
+                                            <span style={{ color: 'var(--success)', fontSize: '0.8rem' }}>{loading ? '...' : 'Actualizado'}</span>
+                                        </div>
+                                        <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>Saldo Total en Caja</p>
+                                        <h2 style={{ fontSize: '2rem', marginTop: '8px' }}>
+                                            ${parseFloat(stats.saldo_total).toLocaleString('es-MX', { minimumFractionDigits: 2 })}
+                                        </h2>
                                     </div>
-                                ) : (
-                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                                        {stats.recientes.map(m => (
-                                            <div key={m.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px', background: '#f8fafc', borderRadius: '10px' }}>
-                                                <div>
-                                                    <div style={{ fontSize: '0.9rem', fontWeight: '500' }}>{m.nombre_completo}</div>
-                                                    <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{m.tipo} - {new Date(m.fecha_operacion).toLocaleDateString()}</div>
-                                                </div>
-                                                <div style={{ fontWeight: 'bold', color: (m.tipo === 'aportacion' ? 'var(--success)' : 'var(--danger)') }}>
-                                                    ${parseFloat(m.monto).toLocaleString()}
-                                                </div>
+
+                                    <div className="glass-panel clickable-card" onClick={() => setCurrentView('prestamos')} style={{ padding: '24px' }}>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px' }}>
+                                            <Landmark color="var(--warning)" />
+                                        </div>
+                                        <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>Préstamos Activos</p>
+                                        <h2 style={{ fontSize: '2rem', marginTop: '8px' }}>{stats.prestamos_activos}</h2>
+                                    </div>
+
+                                    <div className="glass-panel clickable-card" onClick={() => setCurrentView('socios')} style={{ padding: '24px' }}>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px' }}>
+                                            <Users color="var(--primary-light)" />
+                                            <ChevronRight size={18} color="var(--text-muted)" />
+                                        </div>
+                                        <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>Total Socios</p>
+                                        <h2 style={{ fontSize: '2rem', marginTop: '8px' }}>{stats.total_socios}</h2>
+                                    </div>
+                                </div>
+
+                                {/* Recent Activity (ADMIN ONLY) */}
+                                <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '24px' }}>
+                                    <div className="glass-panel" style={{ padding: '24px' }}>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                                            <h3>Movimientos Recientes</h3>
+                                            <button onClick={() => setCurrentView('movimientos')} style={{ background: 'transparent', border: 'none', color: 'var(--primary)', fontSize: '0.85rem', fontWeight: '600', cursor: 'pointer' }}>Ver historial</button>
+                                        </div>
+                                        {stats.recientes.length === 0 ? (
+                                            <div style={{ padding: '40px', textAlign: 'center', background: '#f8fafc', borderRadius: '12px' }}>
+                                                <p style={{ color: 'var(--text-muted)' }}>No hay movimientos registrados.</p>
                                             </div>
-                                        ))}
+                                        ) : (
+                                            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                                                {stats.recientes.map(m => (
+                                                    <div key={m.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px', background: '#f8fafc', borderRadius: '10px' }}>
+                                                        <div>
+                                                            <div style={{ fontSize: '0.9rem', fontWeight: '500' }}>{m.nombre_completo}</div>
+                                                            <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{m.tipo} - {new Date(m.fecha_operacion).toLocaleDateString()}</div>
+                                                        </div>
+                                                        <div style={{ fontWeight: 'bold', color: (m.tipo === 'aportacion' ? 'var(--success)' : 'var(--danger)') }}>
+                                                            ${parseFloat(m.monto).toLocaleString()}
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
                                     </div>
-                                )}
+                                </div>
+                            </>
+                        ) : (
+                            /* SOCIO VIEW */
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '24px' }}>
+                                <div className="glass-panel clickable-card" onClick={() => setCurrentView('abonos_semanal')} style={{ padding: '30px', borderLeft: '4px solid var(--primary)' }}>
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                                        <Calendar size={32} color="var(--primary)" />
+                                        <h2 style={{ fontSize: '1.5rem' }}>Mis Abonos</h2>
+                                        <p style={{ color: 'var(--text-muted)' }}>Consulta tu semana actual y pagos.</p>
+                                    </div>
+                                </div>
+
+                                <div className="glass-panel clickable-card" onClick={() => setCurrentView('prestamos')} style={{ padding: '30px', borderLeft: '4px solid var(--warning)' }}>
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                                        <Landmark size={32} color="var(--warning)" />
+                                        <h2 style={{ fontSize: '1.5rem' }}>Mis Préstamos</h2>
+                                        <p style={{ color: 'var(--text-muted)' }}>Solicita o revisa el estado de tu préstamo.</p>
+                                    </div>
+                                </div>
                             </div>
-                        </div>
+                        )}
 
                         {/* Notices Popup (Only for Non-Admins) */}
                         {showNotices && (
@@ -156,6 +197,7 @@ const Dashboard = ({ user, onLogout }) => {
         }
     };
 
+
     return (
         <div style={{ padding: '20px', maxWidth: '1300px', margin: '0 auto', minHeight: '100vh' }}>
             <header style={{
@@ -168,15 +210,25 @@ const Dashboard = ({ user, onLogout }) => {
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <div>
                         <h1 style={{ fontSize: '1.1rem', marginBottom: '2px' }}>{user.nombre_completo}</h1>
-                        <span style={{
-                            background: '#eff6ff',
-                            color: 'var(--primary)',
-                            fontSize: '0.7rem',
-                            padding: '2px 8px',
-                            borderRadius: '12px',
-                            fontWeight: 'bold',
-                            textTransform: 'uppercase'
-                        }}>{user.rol}</span>
+                        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                            <span style={{
+                                background: '#eff6ff',
+                                color: 'var(--primary)',
+                                fontSize: '0.7rem',
+                                padding: '2px 8px',
+                                borderRadius: '12px',
+                                fontWeight: 'bold',
+                                textTransform: 'uppercase'
+                            }}>{user.rol}</span>
+                            <span style={{
+                                background: '#f0fdf4',
+                                color: '#16a34a',
+                                fontSize: '0.65rem',
+                                padding: '2px 6px',
+                                borderRadius: '8px',
+                                fontWeight: '600'
+                            }}>v5.3.1 • {new Date().toLocaleDateString('es-MX', { month: 'short', day: 'numeric' })}</span>
+                        </div>
                     </div>
 
                     <button onClick={onLogout} style={{
