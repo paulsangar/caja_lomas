@@ -15,14 +15,32 @@ try {
 
     // 1. Registrar movimiento
     $prestamo_id = $data['prestamo_id'] ?? null;
-    $stmt = $pdo->prepare("INSERT INTO movimientos (socio_id, prestamo_id, tipo, monto, descripcion) VALUES (?, ?, ?, ?, ?)");
-    $stmt->execute([
-        $data['socio_id'],
-        $prestamo_id,
-        $data['tipo'],
-        $data['monto'],
-        $data['descripcion'] ?? ''
-    ]);
+
+    try {
+        // Intento V5.2: Usando la nueva columna prestamo_id
+        $stmt = $pdo->prepare("INSERT INTO movimientos (socio_id, prestamo_id, tipo, monto, descripcion, fecha_operacion) VALUES (?, ?, ?, ?, ?, NOW())");
+        $stmt->execute([
+            $data['socio_id'],
+            $prestamo_id,
+            $data['tipo'],
+            $data['monto'],
+            $data['descripcion'] ?? ''
+        ]);
+    } catch (PDOException $e) {
+        // Fallback V5.1: Si la columna prestamo_id no existe (Error 1054 / 42S22), usar esquema viejo
+        // Esto permite que los Abonos sigan funcionando aunque falte la migración
+        if ($e->errorInfo[1] == 1054 || strpos($e->getMessage(), 'Unknown column') !== false) {
+            $stmt = $pdo->prepare("INSERT INTO movimientos (socio_id, tipo, monto, descripcion, fecha_operacion) VALUES (?, ?, ?, ?, NOW())");
+            $stmt->execute([
+                $data['socio_id'],
+                $data['tipo'],
+                $data['monto'],
+                $data['descripcion'] ?? ''
+            ]);
+        } else {
+            throw $e; // Re-lanzar si es otro error
+        }
+    }
 
     // 2. Actualizar saldo en tabla socios (solo si no es préstamo otorgado, que no sale del ahorro)
     // Pero si es pago_prestamo, sí debe abonar al ahorro (o no, depende de la lógica de negocio, normalmente el pago de préstamo no es ahorro)
