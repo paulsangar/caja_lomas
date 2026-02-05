@@ -18,26 +18,28 @@ try {
     $plazo = $data['plazo_semanas'] ?? 1;
 
     // 1. Insertar Préstamo
-    // Corrección V5.3: Revertir a 'monto' y usar 'estado'='activo' para consistencia con Frontend y Stats.
-    $stmt = $pdo->prepare("INSERT INTO prestamos (socio_id, monto, pagado, estado, plazo_semanas, fecha_inicio) VALUES (?, ?, 0, 'activo', ?, NOW())");
+    // Corrección V5.3: Incluir monto_total_pagar y plazo
+    $stmt = $pdo->prepare("INSERT INTO prestamos (socio_id, monto, monto_total_pagar, pagado, estado, plazo_semanas, fecha_inicio) VALUES (?, ?, ?, 0, 'activo', ?, NOW())");
     $stmt->execute([
         $data['socio_id'],
         $monto,
+        $total,
         $plazo
     ]);
     $prestamoId = $pdo->lastInsertId();
 
     // 2. Registrar Movimiento (Salida de dinero)
-    // Nota: 'prestamo_otorgado' no afecta el saldo_total del socio (ahorro), pero queda en historial.
-    $stmtMov = $pdo->prepare("INSERT INTO movimientos (socio_id, tipo, monto, descripcion, fecha_operacion) VALUES (?, 'prestamo_otorgado', ?, ?, NOW())");
+    // Nota: Vinculamos con prestamo_id para trazabilidad
+    $stmtMov = $pdo->prepare("INSERT INTO movimientos (socio_id, prestamo_id, tipo, monto, descripcion, fecha_operacion) VALUES (?, ?, 'prestamo_otorgado', ?, ?, NOW())");
     $stmtMov->execute([
         $data['socio_id'],
+        $prestamoId,
         $monto,
         "Préstamo #$prestamoId otorgado a " . $plazo . " semanas"
     ]);
 
     $pdo->commit();
-    echo json_encode(['success' => true, 'message' => 'Préstamo creado exitosamente']);
+    echo json_encode(['success' => true, 'message' => 'Préstamo creado exitosamente', 'id' => $prestamoId]);
 
 } catch (PDOException $e) {
     if ($pdo->inTransaction())

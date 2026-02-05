@@ -10,7 +10,7 @@ try {
             p.*, 
             u.nombre_completo as socio_nombre, 
             s.numero_socio,
-            (SELECT COALESCE(SUM(monto), 0) FROM movimientos WHERE socio_id = p.socio_id AND tipo = 'pago_prestamo') as monto_pagado
+            (SELECT COALESCE(SUM(monto), 0) FROM movimientos WHERE prestamo_id = p.id AND tipo = 'pago_prestamo') as monto_pagado
         FROM prestamos p 
         JOIN socios s ON p.socio_id = s.id 
         JOIN usuarios u ON s.usuario_id = u.id 

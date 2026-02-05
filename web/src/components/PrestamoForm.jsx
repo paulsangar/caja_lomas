@@ -33,18 +33,6 @@ const PrestamoForm = ({ onClose, onSuccess }) => {
             const data = await response.json();
 
             if (data.success) {
-                // Registrar automáticamente el movimiento de salida de dinero
-                await fetch('./api/movimientos/create.php', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        socio_id: formData.socio_id,
-                        tipo: 'prestamo_otorgado',
-                        monto: formData.monto,
-                        descripcion: `Préstamo otorgado a ${formData.plazo_semanas} semanas`
-                    })
-                });
-
                 onSuccess();
                 onClose();
             } else {
