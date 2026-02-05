@@ -73,13 +73,13 @@ const AbonosSemanal = ({ user }) => {
     const columnas = getColumnas();
 
     const checkPago = (socioId, mesIndex, semanaId) => {
+        // Validación robusta: ID flexible y coincidencia de texto insensible a mayúsculas
+        const mesNombre = nombresMeses[mesIndex];
         return movimientos.some(m =>
-            m.socio_id === socioId &&
+            m.socio_id == socioId &&
             m.tipo === 'aportacion' &&
-            // Fix: No usar fecha_operacion porque el pago puede hacerse en otro mes.
-            // Usar coincidencia en la descripción que contiene "Semana X de Mes Y"
-            m.descripcion.includes(`Semana ${semanaId}`) &&
-            m.descripcion.includes(nombresMeses[mesIndex])
+            m.descripcion.toLowerCase().includes(`semana ${semanaId}`) &&
+            m.descripcion.toLowerCase().includes(mesNombre.toLowerCase())
         );
     };
 
