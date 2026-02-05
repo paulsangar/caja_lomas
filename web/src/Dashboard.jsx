@@ -4,7 +4,7 @@ import Socios from './components/Socios';
 import Movimientos from './components/Movimientos';
 import Prestamos from './components/Prestamos';
 import AbonosSemanal from './components/AbonosSemanal';
-import SimplePagoDirecto from './components/SimplePagoDirecto';
+import PagoRapido from './components/PagoRapido';
 import Configuracion from './components/Configuracion';
 
 const Dashboard = ({ user, onLogout }) => {
@@ -67,9 +67,9 @@ const Dashboard = ({ user, onLogout }) => {
                 return <Movimientos user={user} />;
             case 'prestamos': return <Prestamos user={user} />;
             case 'abonos_semanal':
-                // Para socios: Usar componente simple
-                // Para admin: Usar grid completo
-                return user.rol === 'admin' ? <AbonosSemanal user={user} /> : <SimplePagoDirecto user={user} />;
+                // Para socios: Pago Rápido (un solo botón)
+                // Para admin: Grid completo
+                return user.rol === 'admin' ? <AbonosSemanal user={user} /> : <PagoRapido user={user} />;
             case 'config':
                 // RBAC: Solo admin puede ver config
                 if (user.rol !== 'admin') {
