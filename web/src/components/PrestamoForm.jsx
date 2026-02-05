@@ -24,21 +24,30 @@ const PrestamoForm = ({ onClose, onSuccess }) => {
         e.preventDefault();
         setLoading(true);
 
+        console.log('🏦 Creando préstamo con datos:', formData);
+
         try {
             const response = await fetch('./api/prestamos/create.php', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(formData)
             });
+
+            console.log('📡 Respuesta del servidor (status):', response.status);
+
             const data = await response.json();
+            console.log('📨 Respuesta del servidor (data):', data);
 
             if (data.success) {
+                console.log('✅ Préstamo creado exitosamente, ID:', data.id);
                 onSuccess();
                 onClose();
             } else {
+                console.error('❌ Error al crear préstamo:', data.message);
                 alert(data.message || 'Error al crear préstamo');
             }
         } catch (error) {
+            console.error('💥 Error de conexión:', error);
             alert('Error de conexión');
         } finally {
             setLoading(false);

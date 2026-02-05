@@ -209,14 +209,119 @@ const AbonosSemanal = ({ user }) => {
 
     const filteredSocios = socios.filter(s => {
         // Filtro de seguridad: Si no es admin, solo ver su propio registro
-        if (user.rol !== 'admin' && s.usuario_id != user.id) {
-            return false;
+        if (user.rol !== 'admin') {
+            console.log('🔍 Verificando socio:', s.nombre_completo, '| usuario_id:', s.usuario_id, '| user.id:', user.id, '| Match:', parseInt(s.usuario_id) === parseInt(user.id));
+            // FIX: Usar parseInt para comparación numérica estricta
+            if (parseInt(s.usuario_id) !== parseInt(user.id)) {
+                return false;
+            }
         }
         return (
             s.nombre_completo.toLowerCase().includes(filterName.toLowerCase()) ||
             (s.numero_socio && s.numero_socio.toString().includes(filterName))
         );
     });
+
+    console.log(`📋 Socios filtrados: ${filteredSocios.length} de ${socios.length} total`);
+
+    // VISTA SIMPLIFICADA PARA SOCIOS
+    if (user.rol !== 'admin' && filteredSocios.length > 0) {
+        const miSocio = filteredSocios[0];
+        const cupos = parseInt(miSocio.cupos) || 1;
+        const montoPorSemana = cupos * 100;
+
+        return (
+            <div className="animate-fade-in">
+                <div style={{ marginBottom: '20px' }}>
+                    <h2 style={{ fontSize: '1.5rem', display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px' }}>
+                        <Calendar color="var(--primary)" /> Mis Abonos Semanales
+                    </h2>
+                    <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>
+                        {miSocio.nombre_completo} • {cupos} cupo{cupos > 1 ? 's' : ''} • ${montoPorSemana}/semana
+                    </p>
+                </div>
+
+                <div style={{ display: 'grid', gap: '12px' }}>
+                    {columnas.map((col, idx) => {
+                        const pagado = checkPago(miSocio.id, col.mesIndex, col.semanaNum);
+                        const key = `${miSocio.id}|${col.id}`;
+                        const seleccionado = selectedPayments.includes(key);
+                        const puedeMarcar = !pagado && puedePagar(miSocio.id, idx);
+
+                        return (
+                            <div
+                                key={col.id}
+                                className="glass-panel"
+                                style={{
+                                    padding: '20px',
+                                    display: 'flex',
+                                    justifyContent: 'space-between',
+                                    alignItems: 'center',
+                                    background: pagado ? '#f0fdf4' : (seleccionado ? '#eff6ff' : 'white'),
+                                    border: `2px solid ${pagado ? '#86efac' : (seleccionado ? 'var(--primary)' : 'var(--border)')}`,
+                                    cursor: puedeMarcar ? 'pointer' : 'default',
+                                    opacity: puedeMarcar ? 1 : 0.6
+                                }}
+                                onClick={() => puedeMarcar && toggleSelection(miSocio.id, col, idx)}
+                            >
+                                <div>
+                                    <div style={{ fontWeight: '600', fontSize: '1.1rem' }}>
+                                        Semana {col.semanaNum} • {nombresMeses[col.mesIndex]}
+                                    </div>
+                                    <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginTop: '4px' }}>
+                                        {col.fechaInicio} - {col.fechaFin}
+                                    </div>
+                                </div>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+                                    <div style={{ textAlign: 'right' }}>
+                                        <div style={{ fontSize: '1.3rem', fontWeight: 'bold', color: pagado ? '#16a34a' : 'var(--primary)' }}>
+                                            ${montoPorSemana}
+                                        </div>
+                                        <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                                            {pagado ? '✓ Pagado' : (seleccionado ? 'Seleccionado' : (puedeMarcar ? 'Pendiente' : 'Bloqueado'))}
+                                        </div>
+                                    </div>
+                                    {pagado ? (
+                                        <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: '#16a34a', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                            <span style={{ color: 'white', fontSize: '1.2rem' }}>✓</span>
+                                        </div>
+                                    ) : seleccionado ? (
+                                        <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: 'var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                            <span style={{ color: 'white', fontSize: '1.2rem' }}>✓</span>
+                                        </div>
+                                    ) : null}
+                                </div>
+                            </div>
+                        );
+                    })}
+                </div>
+
+                {selectedPayments.length > 0 && (
+                    <div style={{ position: 'sticky', bottom: '20px', marginTop: '20px' }}>
+                        <button
+                            onClick={handleBatchPayment}
+                            disabled={isSaving}
+                            className="btn-primary"
+                            style={{
+                                width: '100%',
+                                padding: '16px',
+                                fontSize: '1.1rem',
+                                fontWeight: '600',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                gap: '10px'
+                            }}
+                        >
+                            {isSaving ? 'Procesando...' : `💰 Confirmar ${selectedPayments.length} Pago${selectedPayments.length > 1 ? 's' : ''} ($${selectedPayments.length * montoPorSemana})`}
+                        </button>
+                    </div>
+                )}
+            </div>
+        );
+    }
+
+    // VISTA COMPLETA PARA ADMIN (Grid bimestral)
 
     return (
         <div className="animate-fade-in">
