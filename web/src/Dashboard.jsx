@@ -304,52 +304,51 @@ const Dashboard = ({ user, onLogout }) => {
                         </button>
                     </div>
                 </div>
-                </div>
 
                 <nav className="main-nav" style={{
-                        display: 'flex',
-                        gap: '5px',
-                        overflowX: 'auto',
-                        padding: '5px',
-                        margin: '0 -5px',
-                        scrollSnapType: 'x mandatory'
-                    }}>
-                        {[
-                            { id: 'home', icon: <Home size={20} />, label: 'Inicio' },
-                            { id: 'socios', icon: <Users size={20} />, label: 'Socios' },
-                            { id: 'abonos_semanal', icon: <Calendar size={20} />, label: 'Abonos' },
-                            { id: 'prestamos', icon: <Landmark size={20} />, label: 'Préstamos' },
-                            { id: 'movimientos', icon: <History size={20} />, label: 'Historial' },
-                            { id: 'config', icon: <Settings size={20} />, label: 'Config' }
-                        ].filter(item => {
-                            // V5.1 RBAC: Ocultar Socios y Config a usuarios normales
-                            if (user.rol !== 'admin') {
-                                return item.id !== 'socios' && item.id !== 'config' && item.id !== 'movimientos';
-                            }
-                            return true;
-                        }).map(item => (
-                            <button
-                                key={item.id}
-                                onClick={() => setCurrentView(item.id)}
-                                className={`nav-link ${currentView === item.id ? 'active' : ''}`}
-                                style={{
-                                    flex: '1',
-                                    minWidth: '70px',
-                                    flexDirection: 'column',
-                                    gap: '4px',
-                                    padding: '10px 5px',
-                                    fontSize: '0.75rem',
-                                    borderRadius: '10px'
-                                }}
-                            >
-                                {item.icon}
-                                <span>{item.label}</span>
-                            </button>
-                        ))}
-                    </nav>
+                    display: 'flex',
+                    gap: '5px',
+                    overflowX: 'auto',
+                    padding: '5px',
+                    margin: '0 -5px',
+                    scrollSnapType: 'x mandatory'
+                }}>
+                    {[
+                        { id: 'home', icon: <Home size={20} />, label: 'Inicio' },
+                        { id: 'socios', icon: <Users size={20} />, label: 'Socios' },
+                        { id: 'abonos_semanal', icon: <Calendar size={20} />, label: 'Abonos' },
+                        { id: 'prestamos', icon: <Landmark size={20} />, label: 'Préstamos' },
+                        { id: 'movimientos', icon: <History size={20} />, label: 'Historial' },
+                        { id: 'config', icon: <Settings size={20} />, label: 'Config' }
+                    ].filter(item => {
+                        // V5.1 RBAC: Ocultar Socios y Config a usuarios normales
+                        if (user.rol !== 'admin') {
+                            return item.id !== 'socios' && item.id !== 'config' && item.id !== 'movimientos';
+                        }
+                        return true;
+                    }).map(item => (
+                        <button
+                            key={item.id}
+                            onClick={() => setCurrentView(item.id)}
+                            className={`nav-link ${currentView === item.id ? 'active' : ''}`}
+                            style={{
+                                flex: '1',
+                                minWidth: '70px',
+                                flexDirection: 'column',
+                                gap: '4px',
+                                padding: '10px 5px',
+                                fontSize: '0.75rem',
+                                borderRadius: '10px'
+                            }}
+                        >
+                            {item.icon}
+                            <span>{item.label}</span>
+                        </button>
+                    ))}
+                </nav>
             </header >
 
-    <main>{renderView()}</main>
+            <main>{renderView()}</main>
         </div >
     );
 };
