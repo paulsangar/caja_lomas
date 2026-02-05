@@ -40,6 +40,7 @@ const PrestamoForm = ({ onClose, onSuccess }) => {
 
             if (data.success) {
                 console.log('✅ Préstamo creado exitosamente, ID:', data.id);
+                alert(`✅ ¡Préstamo creado exitosamente!\\n\\nID: ${data.id}\\nMonto: $${formData.monto}\\nPlazo: ${formData.plazo_semanas} semanas`);
                 onSuccess();
                 onClose();
             } else {

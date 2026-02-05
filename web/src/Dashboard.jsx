@@ -4,6 +4,7 @@ import Socios from './components/Socios';
 import Movimientos from './components/Movimientos';
 import Prestamos from './components/Prestamos';
 import AbonosSemanal from './components/AbonosSemanal';
+import SimplePagoDirecto from './components/SimplePagoDirecto';
 import Configuracion from './components/Configuracion';
 
 const Dashboard = ({ user, onLogout }) => {
@@ -27,8 +28,14 @@ const Dashboard = ({ user, onLogout }) => {
             const data = await response.json();
             if (data.success) {
                 setStats(data.data);
+
+                // Para no-admin: verificar si hay avisos nuevos
                 if (user.rol !== 'admin' && data.data.avisos && data.data.avisos.length > 0) {
-                    setShowNotices(true);
+                    const avisosLeidos = JSON.parse(localStorage.getItem(`avisos_leidos_${user.id}`) || '[]');
+                    const hayNuevos = data.data.avisos.some(a => !avisosLeidos.includes(a.id));
+                    if (hayNuevos) {
+                        setShowNotices(true);
+                    }
                 }
             }
         } catch (error) {
@@ -59,7 +66,10 @@ const Dashboard = ({ user, onLogout }) => {
                 }
                 return <Movimientos user={user} />;
             case 'prestamos': return <Prestamos user={user} />;
-            case 'abonos_semanal': return <AbonosSemanal user={user} />;
+            case 'abonos_semanal':
+                // Para socios: Usar componente simple
+                // Para admin: Usar grid completo
+                return user.rol === 'admin' ? <AbonosSemanal user={user} /> : <SimplePagoDirecto user={user} />;
             case 'config':
                 // RBAC: Solo admin puede ver config
                 if (user.rol !== 'admin') {
@@ -159,7 +169,7 @@ const Dashboard = ({ user, onLogout }) => {
                             </div>
                         )}
 
-                        {/* Notices Popup (Only for Non-Admins) */}
+                        {/* Notices Popup (Only for Non-Admins) - With Persistent Dismissal */}
                         {showNotices && (
                             <div className="modal-overlay" style={{
                                 position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
@@ -183,11 +193,15 @@ const Dashboard = ({ user, onLogout }) => {
                                         ))}
                                     </div>
                                     <button
-                                        onClick={() => setShowNotices(false)}
+                                        onClick={() => {
+                                            setShowNotices(false);
+                                            // Marcar como leído en localStorage
+                                            localStorage.setItem(`avisos_leidos_${user.id}`, JSON.stringify(stats.avisos.map(a => a.id)));
+                                        }}
                                         className="btn-primary"
                                         style={{ width: '100%', marginTop: '25px' }}
                                     >
-                                        Entendido
+                                        Marcar como Leído
                                     </button>
                                 </div>
                             </div>
@@ -227,68 +241,110 @@ const Dashboard = ({ user, onLogout }) => {
                                 padding: '2px 6px',
                                 borderRadius: '8px',
                                 fontWeight: '600'
-                            }}>v5.3.1 • {new Date().toLocaleDateString('es-MX', { month: 'short', day: 'numeric' })}</span>
+                            }}>v5.4 • {new Date().toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' })}</span>
                         </div>
                     </div>
 
-                    <button onClick={onLogout} style={{
-                        background: '#fef2f2',
-                        border: '1px solid #fee2e2',
-                        color: '#ef4444',
-                        width: '40px',
-                        height: '40px',
-                        borderRadius: '50%',
-                        cursor: 'pointer',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        transition: 'var(--transition)'
-                    }} title="Cerrar Sesión">
-                        <LogOut size={20} />
-                    </button>
-                </div>
+                    <div style={{ display: 'flex', gap: '10px' }}>
+                        {/* Notification Bell (for non-admin users) */}
+                        {user.rol !== 'admin' && stats.avisos && stats.avisos.length > 0 && (
+                            <button onClick={() => setShowNotices(true)} style={{
+                                background: '#fef3c7',
+                                border: '1px solid #fde68a',
+                                color: '#d97706',
+                                width: '40px',
+                                height: '40px',
+                                borderRadius: '50%',
+                                cursor: 'pointer',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                transition: 'var(--transition)',
+                                position: 'relative'
+                            }} title="Ver Avisos">
+                                <Bell size={20} />
+                                {(() => {
+                                    const avisosLeidos = JSON.parse(localStorage.getItem(`avisos_leidos_${user.id}`) || '[]');
+                                    const sinLeer = stats.avisos.filter(a => !avisosLeidos.includes(a.id)).length;
+                                    return sinLeer > 0 ? (
+                                        <span style={{
+                                            position: 'absolute',
+                                            top: '-2px',
+                                            right: '-2px',
+                                            background: '#dc2626',
+                                            color: 'white',
+                                            fontSize: '0.65rem',
+                                            fontWeight: 'bold',
+                                            width: '18px',
+                                            height: '18px',
+                                            borderRadius: '50%',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center'
+                                        }}>{sinLeer}</span>
+                                    ) : null;
+                                })()}
+                            </button>
+                        )}
 
-                <nav className="main-nav" style={{
-                    display: 'flex',
-                    gap: '5px',
-                    overflowX: 'auto',
-                    padding: '5px',
-                    margin: '0 -5px',
-                    scrollSnapType: 'x mandatory'
-                }}>
-                    {[
-                        { id: 'home', icon: <Home size={20} />, label: 'Inicio' },
-                        { id: 'socios', icon: <Users size={20} />, label: 'Socios' },
-                        { id: 'abonos_semanal', icon: <Calendar size={20} />, label: 'Abonos' },
-                        { id: 'prestamos', icon: <Landmark size={20} />, label: 'Préstamos' },
-                        { id: 'movimientos', icon: <History size={20} />, label: 'Historial' },
-                        { id: 'config', icon: <Settings size={20} />, label: 'Config' }
-                    ].filter(item => {
-                        // V5.1 RBAC: Ocultar Socios y Config a usuarios normales
-                        if (user.rol !== 'admin') {
-                            return item.id !== 'socios' && item.id !== 'config' && item.id !== 'movimientos';
-                        }
-                        return true;
-                    }).map(item => (
-                        <button
-                            key={item.id}
-                            onClick={() => setCurrentView(item.id)}
-                            className={`nav-link ${currentView === item.id ? 'active' : ''}`}
-                            style={{
-                                flex: '1',
-                                minWidth: '70px',
-                                flexDirection: 'column',
-                                gap: '4px',
-                                padding: '10px 5px',
-                                fontSize: '0.75rem',
-                                borderRadius: '10px'
-                            }}
-                        >
-                            {item.icon}
-                            <span>{item.label}</span>
+                        <button onClick={onLogout} style={{
+                            background: '#fef2f2',
+                            border: '1px solid #fee2e2',
+                            color: '#ef4444',
+                            width: '40px',
+                            height: '40px',
+                            borderRadius: '50%',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            transition: 'var(--transition)'
+                        }} title="Cerrar Sesión">
+                            <LogOut size={20} />
                         </button>
-                    ))}
-                </nav>
+                    </div>
+
+                    <nav className="main-nav" style={{
+                        display: 'flex',
+                        gap: '5px',
+                        overflowX: 'auto',
+                        padding: '5px',
+                        margin: '0 -5px',
+                        scrollSnapType: 'x mandatory'
+                    }}>
+                        {[
+                            { id: 'home', icon: <Home size={20} />, label: 'Inicio' },
+                            { id: 'socios', icon: <Users size={20} />, label: 'Socios' },
+                            { id: 'abonos_semanal', icon: <Calendar size={20} />, label: 'Abonos' },
+                            { id: 'prestamos', icon: <Landmark size={20} />, label: 'Préstamos' },
+                            { id: 'movimientos', icon: <History size={20} />, label: 'Historial' },
+                            { id: 'config', icon: <Settings size={20} />, label: 'Config' }
+                        ].filter(item => {
+                            // V5.1 RBAC: Ocultar Socios y Config a usuarios normales
+                            if (user.rol !== 'admin') {
+                                return item.id !== 'socios' && item.id !== 'config' && item.id !== 'movimientos';
+                            }
+                            return true;
+                        }).map(item => (
+                            <button
+                                key={item.id}
+                                onClick={() => setCurrentView(item.id)}
+                                className={`nav-link ${currentView === item.id ? 'active' : ''}`}
+                                style={{
+                                    flex: '1',
+                                    minWidth: '70px',
+                                    flexDirection: 'column',
+                                    gap: '4px',
+                                    padding: '10px 5px',
+                                    fontSize: '0.75rem',
+                                    borderRadius: '10px'
+                                }}
+                            >
+                                {item.icon}
+                                <span>{item.label}</span>
+                            </button>
+                        ))}
+                    </nav>
             </header>
 
             <main>{renderView()}</main>
