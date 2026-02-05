@@ -135,8 +135,9 @@ const AbonosSemanal = ({ user }) => {
 
         setIsSaving(true);
         let successCount = 0;
+        let errors = [];
 
-        // Ordenar pagos por la secuencia de columnas
+        // Ordenar pagos por la secuencia de columnas para mantener lógica cronológica
         const pagosOrdenados = [...selectedPayments].sort((a, b) => {
             const [, colIdA] = a.split('|');
             const [, colIdB] = b.split('|');
@@ -154,6 +155,7 @@ const AbonosSemanal = ({ user }) => {
 
             const cupos = parseInt(socio.cupos) || 1;
             const monto = cupos * 100;
+            const descripcion = `Abono correspondiente a Semana ${colData.semanaNum} de ${nombresMeses[colData.mesIndex]}`;
 
             try {
                 const response = await fetch('./api/movimientos/create.php', {
@@ -163,19 +165,32 @@ const AbonosSemanal = ({ user }) => {
                         socio_id: socio.id,
                         tipo: 'aportacion',
                         monto: monto,
-                        descripcion: `Abono correspondente a Semana ${colData.semanaNum} de ${nombresMeses[colData.mesIndex]}`
+                        descripcion: descripcion
                     })
                 });
+
                 const data = await response.json();
-                if (data.success) successCount++;
+                if (data.success) {
+                    successCount++;
+                } else {
+                    errors.push(`${socio.nombre_completo}: ${data.message}`);
+                }
             } catch (e) {
                 console.error("Error paying " + key, e);
+                errors.push(`${socio.nombre_completo}: Error de conexión`);
             }
         }
 
-        alert(`Se procesaron ${successCount} abonos exitosamente.`);
+        if (errors.length > 0) {
+            alert(`Procesados: ${successCount}\nErrores:\n${errors.join('\n')}`);
+        } else {
+            alert(`¡Éxito! Se registraron ${successCount} abonos y ya aparecen en el historial.`);
+        }
+
         setSelectedPayments([]);
-        await fetchDatos(); // Recargar datos para asegurar consistencia
+        // IMPORTANTE: Limpiar el estado de movimientos local para forzar que checkPago use los nuevos datos
+        setMovimientos([]);
+        await fetchDatos();
         setIsSaving(false);
     };
 
