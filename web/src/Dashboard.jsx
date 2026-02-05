@@ -214,7 +214,7 @@ const Dashboard = ({ user, onLogout }) => {
                     ].filter(item => {
                         // V5.1 RBAC: Ocultar Socios y Config a usuarios normales
                         if (user.rol !== 'admin') {
-                            return item.id !== 'socios' && item.id !== 'config';
+                            return item.id !== 'socios' && item.id !== 'config' && item.id !== 'movimientos';
                         }
                         return true;
                     }).map(item => (

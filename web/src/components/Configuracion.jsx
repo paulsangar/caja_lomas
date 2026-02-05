@@ -77,11 +77,38 @@ const Configuracion = ({ user }) => {
         fetchAvisos();
     };
 
+    const handleRepairDB = async () => {
+        if (!window.confirm('¿Ejecutar reparación profunda de base de datos? Esto verificará y creará columnas faltantes.')) return;
+
+        try {
+            const response = await fetch('./api/migrate_schema_repair.php');
+            const data = await response.json();
+
+            let msg = data.details ? data.details.join('\n') : data.message;
+            alert(data.success ? `ÉXITO:\n${msg}` : `ERROR:\n${msg}`);
+        } catch (error) {
+            alert('Error al ejecutar script: ' + error.message);
+        }
+    };
+
     return (
         <div className="animate-fade-in">
             <h2 style={{ fontSize: '1.5rem', display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '30px' }}>
                 <Settings color="var(--primary)" /> Configuración del Sistema
             </h2>
+
+            <div className="glass-panel" style={{ padding: '24px', marginBottom: '20px', borderLeft: '4px solid var(--warning)' }}>
+                <h3 style={{ fontSize: '1.1rem', marginBottom: '15px' }}>Zona de Mantenimiento</h3>
+                <p style={{ marginBottom: '15px', color: 'var(--text-muted)' }}>Utiliza estas herramientas si detectas errores de "Columna no encontrada" o problemas de base de datos.</p>
+
+                <button
+                    onClick={handleRepairDB}
+                    className="btn-primary"
+                    style={{ background: 'var(--warning)', border: 'none', color: 'black' }}
+                >
+                    🔧 Reparar Base de Datos (Auto-Fix)
+                </button>
+            </div>
 
             <div style={{ display: 'flex', gap: '20px', marginBottom: '30px' }}>
                 <button

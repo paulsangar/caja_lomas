@@ -194,10 +194,16 @@ const AbonosSemanal = ({ user }) => {
         setIsSaving(false);
     };
 
-    const filteredSocios = socios.filter(s =>
-        s.nombre_completo.toLowerCase().includes(filterName.toLowerCase()) ||
-        (s.numero_socio && s.numero_socio.toString().includes(filterName))
-    );
+    const filteredSocios = socios.filter(s => {
+        // Filtro de seguridad: Si no es admin, solo ver su propio registro
+        if (user.rol !== 'admin' && s.usuario_id != user.id) {
+            return false;
+        }
+        return (
+            s.nombre_completo.toLowerCase().includes(filterName.toLowerCase()) ||
+            (s.numero_socio && s.numero_socio.toString().includes(filterName))
+        );
+    });
 
     return (
         <div className="animate-fade-in">
