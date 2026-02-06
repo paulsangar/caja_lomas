@@ -66,8 +66,15 @@ const Prestamos = ({ user }) => {
 
     const handleRealizarAbono = async (e) => {
         e.preventDefault();
+        const saldoRestante = parseFloat(selectedPrestamo.monto_total_pagar) - parseFloat(selectedPrestamo.monto_pagado || selectedPrestamo.pagado || 0);
+
         if (!selectedPrestamo || !abonoAmount || parseFloat(abonoAmount) <= 0) {
             alert('Por favor, ingrese un monto válido para abonar.');
+            return;
+        }
+
+        if (parseFloat(abonoAmount) > saldoRestante) {
+            alert(`El monto ingresado ($${parseFloat(abonoAmount)}) supera el saldo restante ($${saldoRestante}).`);
             return;
         }
 
@@ -175,35 +182,7 @@ const Prestamos = ({ user }) => {
 
 
                                     {expandedRow === p.id && (
-                                        <div style={{ background: '#f8fafc', padding: '20px', display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '20px' }} className="animate-fade-in">
-                                            <div>
-                                                <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Fecha Inicio</div>
-                                                <div style={{ fontWeight: '500' }}>{new Date(p.fecha_inicio).toLocaleDateString()}</div>
-                                            </div>
-                                            <div>
-                                                <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Plazo</div>
-                                                <div style={{ fontWeight: '500' }}>{p.plazo_semanas} Semanas</div>
-                                            </div>
-                                            <div>
-                                                <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Saldo Restante</div>
-                                                <div style={{ fontWeight: 'bold', color: '#dc2626', fontSize: '1.1rem' }}>
-                                                    ${saldoRestante.toLocaleString()}
-                                                </div>
-                                            </div>
-
-                                            {/* Botón de Abonar (Solo Admin) */}
-                                            {user.rol === 'admin' && saldoRestante > 0 && (
-                                                <div style={{ gridColumn: 'span 3', marginTop: '15px', borderTop: '1px solid #e5e7eb', paddingTop: '15px' }}>
-                                                    <button
-                                                        onClick={() => handleOpenAbono(p)}
-                                                        className="btn-primary"
-                                                        style={{ background: '#10b981', display: 'flex', alignItems: 'center', gap: '8px' }}
-                                                    >
-                                                        <Plus size={16} /> Registrar Abono
-                                                    </button>
-                                                </div>
-                                            )}
-                                        </div>
+                                        <PrestamoDetalle p={p} saldoRestante={saldoRestante} user={user} onAbonar={() => handleOpenAbono(p)} />
                                     )}
                                 </div>
                             );
@@ -246,6 +225,100 @@ const Prestamos = ({ user }) => {
                             </div>
                         </form>
                     </div>
+                </div>
+            )}
+        </div>
+    );
+};
+
+const PrestamoDetalle = ({ p, saldoRestante, user, onAbonar }) => {
+    const [historial, setHistorial] = useState([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        // Fetch movimientos filtrados (V5.21 Feature)
+        // Nota: El endpoint list.php actualmente filtra por usuario. 
+        // Para filtrar por prestamo, deberíamos modificar el endpoint o filtrar en cliente si son pocos.
+        // Dado que list.php trae TODO del usuario, podemos filtrar aquí si el usuario es socio.
+        // Si es admin, list.php trae TODO de TODOS? No, admin trae todo.
+        // Optimizamos: Usamos la lista global si ya la tenemos? No, mejor fetch fresco.
+
+        const fetchHistory = async () => {
+            try {
+                // Usamos el list.php existente. 
+                // Si es socio, ya filtra por su ID. Si es admin, trae todo.
+                // TODO: Idealmente agregar ?prestamo_id=ID al endpoint.
+                // Por ahora, filtramos en cliente.
+                const query = user.rol === 'admin' ? '' : `?usuario_id=${user.id}`;
+                const res = await fetch(`./api/movimientos/list.php${query}`);
+                const data = await res.json();
+                if (data.success) {
+                    const filtrados = data.data.filter(m => m.prestamo_id == p.id);
+                    setHistorial(filtrados);
+                }
+            } catch (e) {
+                console.error(e);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchHistory();
+    }, [p.id]);
+
+    return (
+        <div style={{ background: '#f8fafc', padding: '20px', display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '20px', gridColumn: '1 / -1' }} className="animate-fade-in">
+            <div>
+                <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Fecha Inicio</div>
+                <div style={{ fontWeight: '500' }}>{p.fecha_inicio ? new Date(p.fecha_inicio).toLocaleDateString() : 'N/A'}</div>
+            </div>
+            <div>
+                <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Plazo</div>
+                <div style={{ fontWeight: '500' }}>{p.plazo_semanas} Semanas</div>
+            </div>
+            <div>
+                <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Saldo Restante</div>
+                <div style={{ fontWeight: 'bold', color: '#dc2626', fontSize: '1.2rem' }}>
+                    ${saldoRestante.toLocaleString()}
+                </div>
+            </div>
+
+            {/* Historial de Pagos (V5.21) */}
+            <div style={{ gridColumn: '1 / -1', marginTop: '10px' }}>
+                <h4 style={{ fontSize: '0.9rem', marginBottom: '10px', color: 'var(--text-main)' }}>Historial de Pagos</h4>
+                {loading ? <div style={{ fontSize: '0.8rem' }}>Cargando historial...</div> :
+                    historial.length === 0 ? <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Sin pagos registrados</div> : (
+                        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
+                            <thead>
+                                <tr style={{ background: '#e2e8f0', textAlign: 'left' }}>
+                                    <th style={{ padding: '8px' }}>Fecha</th>
+                                    <th style={{ padding: '8px' }}>Descripción</th>
+                                    <th style={{ padding: '8px' }}>Monto</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {historial.map(h => (
+                                    <tr key={h.id} style={{ borderBottom: '1px solid #cbd5e1' }}>
+                                        <td style={{ padding: '8px' }}>{new Date(h.fecha_operacion).toLocaleDateString()}</td>
+                                        <td style={{ padding: '8px' }}>{h.descripcion}</td>
+                                        <td style={{ padding: '8px', fontWeight: 'bold', color: 'var(--success)' }}>+${parseFloat(h.monto).toLocaleString()}</td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    )
+                }
+            </div>
+
+            {/* Botón de Abonar (Solo Admin) */}
+            {user.rol === 'admin' && saldoRestante > 0 && (
+                <div style={{ gridColumn: '1 / -1', marginTop: '15px', borderTop: '1px solid #e5e7eb', paddingTop: '15px', display: 'flex', justifyContent: 'flex-end' }}>
+                    <button
+                        onClick={onAbonar}
+                        className="btn-primary"
+                        style={{ background: '#10b981', display: 'flex', alignItems: 'center', gap: '8px' }}
+                    >
+                        <Plus size={16} /> Registrar Abono
+                    </button>
                 </div>
             )}
         </div>

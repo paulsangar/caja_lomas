@@ -199,14 +199,26 @@ const Dashboard = ({ user, onLogout }) => {
                                         <Bell color="var(--warning)" size={24} /> Avisos Importantes
                                     </h3>
                                     <div style={{ display: 'flex', flexDirection: 'column', gap: '15px', maxHeight: '60vh', overflowY: 'auto' }}>
-                                        {stats.avisos.map(aviso => (
-                                            <div key={aviso.id} style={{
-                                                background: '#f0f9ff', padding: '15px', borderRadius: '12px', borderLeft: '4px solid var(--primary-light)'
-                                            }}>
-                                                <h4 style={{ fontSize: '1rem', color: 'var(--primary)', marginBottom: '5px' }}>{aviso.titulo}</h4>
-                                                <p style={{ fontSize: '0.9rem', color: 'var(--text-main)', lineHeight: '1.4' }}>{aviso.contenido}</p>
-                                            </div>
-                                        ))}
+                                        {stats.avisos.map(aviso => {
+                                            const avisosLeidos = JSON.parse(localStorage.getItem(`avisos_leidos_${user.id}`) || '[]');
+                                            const isRead = avisosLeidos.includes(aviso.id);
+                                            return (
+                                                <div key={aviso.id} style={{
+                                                    background: isRead ? '#f1f5f9' : '#f0f9ff',
+                                                    padding: '15px',
+                                                    borderRadius: '12px',
+                                                    borderLeft: isRead ? '4px solid #cbd5e1' : '4px solid var(--primary-light)',
+                                                    opacity: isRead ? 0.8 : 1
+                                                }}>
+                                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                                                        <h4 style={{ fontSize: '1rem', color: isRead ? '#64748b' : 'var(--primary)', marginBottom: '5px' }}>{aviso.titulo}</h4>
+                                                        {!isRead && <span style={{ fontSize: '0.6rem', background: '#ef4444', color: 'white', padding: '2px 6px', borderRadius: '10px' }}>NUEVO</span>}
+                                                    </div>
+                                                    <p style={{ fontSize: '0.9rem', color: 'var(--text-main)', lineHeight: '1.4' }}>{aviso.contenido}</p>
+                                                    {isRead && <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginTop: '5px', textAlign: 'right' }}>Leído</div>}
+                                                </div>
+                                            );
+                                        })}
                                     </div>
                                     <button
                                         onClick={() => {
@@ -262,7 +274,7 @@ const Dashboard = ({ user, onLogout }) => {
                                 padding: '2px 6px',
                                 borderRadius: '8px',
                                 fontWeight: '600'
-                            }}>v5.20 • 22:50</span>
+                            }}>v5.21 • 23:15</span>
                         </div>
                     </div>
 

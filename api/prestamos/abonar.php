@@ -26,9 +26,17 @@ try {
         throw new Exception("Préstamo no encontrado");
     }
 
+    $saldo_restante = $prestamo['monto_total_pagar'] - $prestamo['pagado'];
+
+    // Validación V5.21: No permitir abonar más de la deuda
+    if ($monto_abono > $saldo_restante) {
+        throw new Exception("El abono ($" . number_format($monto_abono, 2) . ") excede el saldo restante ($" . number_format($saldo_restante, 2) . ")");
+    }
+
     $socio_id = $prestamo['socio_id'];
     $nuevo_pagado = $prestamo['pagado'] + $monto_abono;
-    $estado = ($nuevo_pagado >= $prestamo['monto_total_pagar']) ? 'pagado' : 'activo';
+    // float comparison safety
+    $estado = ($nuevo_pagado >= ($prestamo['monto_total_pagar'] - 0.01)) ? 'pagado' : 'activo';
 
     // 2. Registrar movimiento (entrada de dinero)
     $stmtMov = $pdo->prepare("INSERT INTO movimientos (socio_id, prestamo_id, tipo, monto, descripcion, fecha_operacion) VALUES (?, ?, 'pago_prestamo', ?, ?, NOW())");

@@ -111,6 +111,22 @@ const MisAbonos = ({ user }) => {
         );
     }
 
+    // Lógica para obtener el último abono
+    const getUltimoAbono = () => {
+        if (!movimientos || movimientos.length === 0) return null;
+        // Asumiendo que están ordenados por fecha DESC desde el API
+        return movimientos[0];
+    };
+
+    const ultimoAbono = getUltimoAbono();
+
+    // Lógica Estatus General (Semana Actual Pagada?)
+    // Obtenemos semana actual del mes
+    const hoy = new Date();
+    // Aproximación simple de semana del mes (1-4)
+    const semanaActual = Math.ceil(hoy.getDate() / 7);
+    const estatusSemanaActual = socio ? estaPagado(socio.id, semanaActual) : false;
+
     return (
         <div className="animate-fade-in">
             {/* Header */}
@@ -148,6 +164,52 @@ const MisAbonos = ({ user }) => {
                     }}>
                         <ChevronRight size={20} />
                     </button>
+                </div>
+            </div>
+
+            {/* V5.21: Tarjeta Resumen General */}
+            <div className="glass-panel" style={{ padding: '25px', marginBottom: '30px', background: 'linear-gradient(to right, #ffffff, #f8fafc)' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px' }}>
+                    {/* Estatus */}
+                    <div style={{ padding: '15px', borderRadius: '12px', background: estatusSemanaActual ? '#f0fdf4' : '#fff7ed', border: estatusSemanaActual ? '1px solid #bbf7d0' : '1px solid #fed7aa' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '5px' }}>
+                            {estatusSemanaActual ? <Check size={20} color="#16a34a" /> : <Loader size={20} color="#ea580c" />}
+                            <span style={{ fontSize: '0.9rem', fontWeight: '600', color: estatusSemanaActual ? '#166534' : '#9a3412' }}>Estatus Semanal</span>
+                        </div>
+                        <div style={{ fontSize: '1.2rem', fontWeight: 'bold' }}>
+                            {estatusSemanaActual ? 'AL CORRIENTE' : 'PENDIENTE'}
+                        </div>
+                        <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '5px' }}>
+                            Semana {semanaActual} de {nombresMeses[hoy.getMonth()]}
+                        </div>
+                    </div>
+
+                    {/* Último Abono */}
+                    <div style={{ padding: '15px', borderRadius: '12px', background: 'white', border: '1px solid var(--border)' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '5px' }}>
+                            <div style={{ color: 'var(--primary)', fontSize: '0.9rem', fontWeight: '600' }}>Último Abono</div>
+                        </div>
+                        {ultimoAbono ? (
+                            <>
+                                <div style={{ fontSize: '1.2rem', fontWeight: 'bold', color: 'var(--success)' }}>
+                                    +${parseFloat(ultimoAbono.monto).toLocaleString()}
+                                </div>
+                                <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '5px' }}>
+                                    {new Date(ultimoAbono.fecha_operacion).toLocaleDateString()}
+                                </div>
+                            </>
+                        ) : (
+                            <div style={{ color: 'var(--text-muted)', fontStyle: 'italic' }}>Sin movimientos recientes</div>
+                        )}
+                    </div>
+
+                    {/* Total Ahorrado */}
+                    <div style={{ padding: '15px', borderRadius: '12px', background: 'var(--primary)', color: 'white' }}>
+                        <div style={{ fontSize: '0.9rem', fontWeight: '600', opacity: 0.9, marginBottom: '5px' }}>Total Ahorrado</div>
+                        <div style={{ fontSize: '1.5rem', fontWeight: 'bold' }}>
+                            ${parseFloat(socio.saldo_total || 0).toLocaleString()}
+                        </div>
+                    </div>
                 </div>
             </div>
 
