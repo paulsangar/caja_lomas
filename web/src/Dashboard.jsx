@@ -5,6 +5,7 @@ import Movimientos from './components/Movimientos';
 import Prestamos from './components/Prestamos';
 import GridSemanalSimple from './components/GridSemanalSimple';
 import Configuracion from './components/Configuracion';
+import MisAbonos from './components/MisAbonos';
 
 const Dashboard = ({ user, onLogout }) => {
     const [currentView, setCurrentView] = useState('home');
@@ -261,7 +262,7 @@ const Dashboard = ({ user, onLogout }) => {
                                 padding: '2px 6px',
                                 borderRadius: '8px',
                                 fontWeight: '600'
-                            }}>v5.18 • 22:30</span>
+                            }}>v5.19 • 22:45</span>
                         </div>
                     </div>
 
