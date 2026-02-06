@@ -3,8 +3,7 @@ import { LogOut, Wallet, Users, Landmark, Bell, Home, ChevronRight, History, Cal
 import Socios from './components/Socios';
 import Movimientos from './components/Movimientos';
 import Prestamos from './components/Prestamos';
-import AbonosSemanal from './components/AbonosSemanal';
-import PagoRapido from './components/PagoRapido';
+import RegistroAbonosAdmin from './components/RegistroAbonosAdmin';
 import Configuracion from './components/Configuracion';
 
 const Dashboard = ({ user, onLogout }) => {
@@ -67,9 +66,12 @@ const Dashboard = ({ user, onLogout }) => {
                 return <Movimientos user={user} />;
             case 'prestamos': return <Prestamos user={user} />;
             case 'abonos_semanal':
-                // Para socios: Pago Rápido (un solo botón)
-                // Para admin: Grid completo
-                return user.rol === 'admin' ? <AbonosSemanal user={user} /> : <PagoRapido user={user} />;
+                // Solo admin puede registrar abonos
+                if (user.rol !== 'admin') {
+                    setCurrentView('home');
+                    return null;
+                }
+                return <RegistroAbonosAdmin user={user} />;
             case 'config':
                 // RBAC: Solo admin puede ver config
                 if (user.rol !== 'admin') {
@@ -241,7 +243,7 @@ const Dashboard = ({ user, onLogout }) => {
                                 padding: '2px 6px',
                                 borderRadius: '8px',
                                 fontWeight: '600'
-                            }}>v5.5 • 18:12</span>
+                            }}>v5.6 • 18:24</span>
                         </div>
                     </div>
 
@@ -321,9 +323,9 @@ const Dashboard = ({ user, onLogout }) => {
                         { id: 'movimientos', icon: <History size={20} />, label: 'Historial' },
                         { id: 'config', icon: <Settings size={20} />, label: 'Config' }
                     ].filter(item => {
-                        // V5.1 RBAC: Ocultar Socios y Config a usuarios normales
+                        // V5.6 RBAC: Socios NO ven Abonos, Socios, Config, ni Movimientos
                         if (user.rol !== 'admin') {
-                            return item.id !== 'socios' && item.id !== 'config' && item.id !== 'movimientos';
+                            return item.id !== 'socios' && item.id !== 'config' && item.id !== 'movimientos' && item.id !== 'abonos_semanal';
                         }
                         return true;
                     }).map(item => (
