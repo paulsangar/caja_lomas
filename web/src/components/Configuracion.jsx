@@ -97,19 +97,6 @@ const Configuracion = ({ user }) => {
                 <Settings color="var(--primary)" /> Configuración del Sistema
             </h2>
 
-            <div className="glass-panel" style={{ padding: '24px', marginBottom: '20px', borderLeft: '4px solid var(--warning)' }}>
-                <h3 style={{ fontSize: '1.1rem', marginBottom: '15px' }}>Zona de Mantenimiento</h3>
-                <p style={{ marginBottom: '15px', color: 'var(--text-muted)' }}>Utiliza estas herramientas si detectas errores de "Columna no encontrada" o problemas de base de datos.</p>
-
-                <button
-                    onClick={handleRepairDB}
-                    className="btn-primary"
-                    style={{ background: 'var(--warning)', border: 'none', color: 'black' }}
-                >
-                    🔧 Reparar Base de Datos (Auto-Fix)
-                </button>
-            </div>
-
             <div style={{ display: 'flex', gap: '20px', marginBottom: '30px' }}>
                 <button
                     onClick={() => setActiveTab('avisos')}

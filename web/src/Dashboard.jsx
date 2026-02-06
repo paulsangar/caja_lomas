@@ -197,8 +197,13 @@ const Dashboard = ({ user, onLogout }) => {
                                     <button
                                         onClick={() => {
                                             setShowNotices(false);
-                                            // Marcar como leído en localStorage
-                                            localStorage.setItem(`avisos_leidos_${user.id}`, JSON.stringify(stats.avisos.map(a => a.id)));
+                                            // 1. Obtener leídos actuales
+                                            const leidosPrevios = JSON.parse(localStorage.getItem(`avisos_leidos_${user.id}`) || '[]');
+                                            // 2. Agregar los nuevos IDs (evitando duplicados)
+                                            const nuevosIds = stats.avisos.map(a => a.id);
+                                            const combinados = [...new Set([...leidosPrevios, ...nuevosIds])];
+                                            // 3. Guardar persistente
+                                            localStorage.setItem(`avisos_leidos_${user.id}`, JSON.stringify(combinados));
                                         }}
                                         className="btn-primary"
                                         style={{ width: '100%', marginTop: '25px' }}
@@ -243,7 +248,7 @@ const Dashboard = ({ user, onLogout }) => {
                                 padding: '2px 6px',
                                 borderRadius: '8px',
                                 fontWeight: '600'
-                            }}>v5.15 • 20:20</span>
+                            }}>v5.16 • 20:35</span>
                         </div>
                     </div>
 

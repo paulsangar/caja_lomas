@@ -32,6 +32,8 @@ const MisAbonos = ({ user }) => {
                 fetch(`./api/movimientos/list.php?usuario_id=${user.id}&t=${ts}`, { cache: 'no-store' })
             ]);
 
+            console.log('Fetching MisAbonos for user:', user.id); // DEBUG
+
             const dataSocio = await resSocio.json();
             const dataMovs = await resMovs.json();
 
@@ -99,8 +101,12 @@ const MisAbonos = ({ user }) => {
         return (
             <div className="glass-panel" style={{ padding: '30px', textAlign: 'center' }}>
                 <AlertCircle size={48} color="var(--warning)" style={{ margin: '0 auto 15px' }} />
-                <h3>No tienes perfil de socio asignado</h3>
-                <p>Contacta al administrador.</p>
+                <h3>No se encontró información de socio</h3>
+                <p>Tu usuario no está vinculado a un registro de socio activo.</p>
+                <div style={{ marginTop: '20px', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                    Usuario ID: {user?.id} <br />
+                    Rol: {user?.rol}
+                </div>
             </div>
         );
     }

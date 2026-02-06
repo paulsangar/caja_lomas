@@ -61,87 +61,43 @@ const Prestamos = ({ user }) => {
                 />
             )}
 
-            <div className="glass-panel" style={{ padding: '0', overflow: 'hidden' }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                    <thead>
-                        <tr style={{ background: '#f8fafc', color: 'var(--text-muted)', fontSize: '0.85rem' }}>
-                            <th style={{ padding: '15px', textAlign: 'left' }}>Socio</th>
-                            <th style={{ padding: '15px' }}>Monto Prestado</th>
-                            <th style={{ padding: '15px' }}>Total Pagar</th>
-                            <th style={{ padding: '15px' }}>Pagado</th>
-                            <th style={{ padding: '15px' }}>Estatus</th>
-                            <th style={{ padding: '15px', textAlign: 'center' }}></th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {loading ? (
-                            <tr><td colSpan="6" style={{ padding: '30px', textAlign: 'center' }}>Cargando préstamos...</td></tr>
-                        ) : prestamos.length === 0 ? (
-                            <tr><td colSpan="6" style={{ padding: '30px', textAlign: 'center', color: 'var(--text-muted)' }}>No hay préstamos activos.</td></tr>
-                        ) : (
-                            prestamos.map(p => {
-                                const style = getStatusStyle(p.estado);
-                                const monto = parseFloat(p.monto);
-                                const total = parseFloat(p.monto_total_pagar);
-                                const pagado = parseFloat(p.monto_pagado || 0);
+            {/* Modal Abono */}
+            {showAbonoModal && selectedPrestamo && (
+                <div className="modal-overlay" style={{
+                    position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+                    background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000
+                }}>
+                    <div className="glass-panel animate-slide-up" style={{ padding: '30px', maxWidth: '400px', width: '100%' }}>
+                        <h3 style={{ marginBottom: '20px' }}>Abonar a Préstamo</h3>
+                        <p style={{ marginBottom: '15px', fontSize: '0.9rem' }}>
+                            Socio: <strong>{selectedPrestamo.socio_nombre}</strong><br />
+                            Saldo Restante: <span style={{ color: 'red' }}>${(parseFloat(selectedPrestamo.monto_total_pagar) - parseFloat(selectedPrestamo.monto_pagado)).toLocaleString()}</span>
+                        </p>
 
-                                return (
-                                    <React.Fragment key={p.id}>
-                                        <tr
-                                            onClick={() => toggleRow(p.id)}
-                                            className="table-row-hover"
-                                            style={{ borderBottom: '1px solid var(--border)', cursor: 'pointer' }}
-                                        >
-                                            <td style={{ padding: '15px', fontWeight: '500' }}>
-                                                {p.socio_nombre}
-                                                <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>ID: {p.numero_socio}</div>
-                                            </td>
-                                            <td style={{ padding: '15px', textAlign: 'center' }}>${monto.toLocaleString()}</td>
-                                            <td style={{ padding: '15px', textAlign: 'center' }}>${total.toLocaleString()}</td>
-                                            <td style={{ padding: '15px', textAlign: 'center', color: pagado >= total ? 'var(--success)' : 'var(--text-main)' }}>
-                                                ${pagado.toLocaleString()}
-                                            </td>
-                                            <td style={{ padding: '15px', textAlign: 'center' }}>
-                                                <span style={{
-                                                    background: style.bg, color: style.color,
-                                                    padding: '4px 10px', borderRadius: '15px', fontSize: '0.75rem', fontWeight: 'bold',
-                                                    display: 'inline-flex', alignItems: 'center', gap: '5px'
-                                                }}>
-                                                    {style.icon} {p.estado.toUpperCase()}
-                                                </span>
-                                            </td>
-                                            <td style={{ padding: '15px', textAlign: 'center', color: 'var(--text-muted)' }}>
-                                                {expandedRow === p.id ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
-                                            </td>
-                                        </tr>
-                                        {expandedRow === p.id && (
-                                            <tr style={{ background: '#f8fafc' }}>
-                                                <td colSpan="6" style={{ padding: '0' }}>
-                                                    <div style={{ padding: '20px', display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '20px', borderBottom: '1px solid var(--border)' }}>
-                                                        <div>
-                                                            <strong style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '5px' }}>Fecha Inicio</strong>
-                                                            {new Date(p.fecha_inicio).toLocaleDateString()}
-                                                        </div>
-                                                        <div>
-                                                            <strong style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '5px' }}>Plazo</strong>
-                                                            {p.plazo_semanas} Semanas
-                                                        </div>
-                                                        <div>
-                                                            <strong style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '5px' }}>Saldo Restante</strong>
-                                                            <span style={{ color: 'var(--danger)', fontWeight: 'bold' }}>${(total - pagado).toLocaleString()}</span>
-                                                        </div>
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                        )}
-                                    </React.Fragment>
-                                );
-                            })
-                        )}
-                    </tbody>
-                </table>
-            </div>
-        </div >
+                        <form onSubmit={handleRealizarAbono}>
+                            <div className="input-group">
+                                <label>Monto a Abonar</label>
+                                <input
+                                    type="number"
+                                    min="1"
+                                    step="0.01"
+                                    value={abonoAmount}
+                                    onChange={e => setAbonoAmount(e.target.value)}
+                                    placeholder="0.00"
+                                    required
+                                    autoFocus
+                                />
+                            </div>
+
+                            <div style={{ display: 'flex', gap: '10px', marginTop: '20px', justifyContent: 'flex-end' }}>
+                                <button type="button" onClick={() => setShowAbonoModal(false)} className="btn-secondary">Cancelar</button>
+                                <button type="submit" className="btn-primary">Registrar Pago</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
+        </div>
     );
 };
 
