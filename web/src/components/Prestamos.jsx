@@ -12,7 +12,8 @@ const Prestamos = ({ user }) => {
         setLoading(true);
         try {
             const query = (user && user.rol !== 'admin') ? `?usuario_id=${user.id}` : '';
-            const response = await fetch(`./api/prestamos/list.php${query}`);
+            const cacheBuster = (query ? '&' : '?') + 't=' + Date.now();
+            const response = await fetch(`./api/prestamos/list.php${query}${cacheBuster}`);
             const data = await response.json();
             if (data.success) {
                 setPrestamos(data.data);

@@ -176,9 +176,26 @@ const GridSemanalSimple = ({ user }) => {
         );
     }
 
+    const getRangoFechas = (semana) => {
+        const diasPorSemana = 7;
+        const inicioDia = (semana - 1) * diasPorSemana + 1;
+        let finDia = semana * diasPorSemana;
+
+        // Ajuste para el fin de mes
+        // Enero (31), Febrero (28/29), etc.
+        const diasEnMes = new Date(anioActual, mesActual + 1, 0).getDate();
+
+        if (semana === 4) {
+            finDia = diasEnMes; // La semana 4 llega hasta el final
+        }
+
+        const mesCorto = nombresMeses[mesActual].substring(0, 3);
+        return `${inicioDia}-${finDia} ${mesCorto}`;
+    };
+
     return (
         <div className="animate-fade-in">
-            {/* Header */}
+            {/* Header - Sin cambios */}
             <div style={{ marginBottom: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <h2 style={{ fontSize: '1.5rem', margin: 0, display: 'flex', alignItems: 'center', gap: '10px' }}>
                     <Calendar color="var(--primary)" /> Control de Abonos
@@ -228,10 +245,14 @@ const GridSemanalSimple = ({ user }) => {
                                 <th key={sem} style={{
                                     padding: '12px',
                                     textAlign: 'center',
-                                    fontSize: '0.9rem',
-                                    fontWeight: '600'
+                                    fontSize: '0.8rem',
+                                    fontWeight: '600',
+                                    whiteSpace: 'nowrap'
                                 }}>
-                                    Sem {sem}
+                                    <div>Semana {sem}</div>
+                                    <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 'normal' }}>
+                                        {getRangoFechas(sem)}
+                                    </div>
                                 </th>
                             ))}
                         </tr>
