@@ -3,7 +3,7 @@ import { LogOut, Wallet, Users, Landmark, Bell, Home, ChevronRight, History, Cal
 import Socios from './components/Socios';
 import Movimientos from './components/Movimientos';
 import Prestamos from './components/Prestamos';
-import AbonosSemanal from './components/AbonosSemanal';
+import GridSemanalSimple from './components/GridSemanalSimple';
 import Configuracion from './components/Configuracion';
 
 const Dashboard = ({ user, onLogout }) => {
@@ -66,13 +66,12 @@ const Dashboard = ({ user, onLogout }) => {
                 return <Movimientos user={user} />;
             case 'prestamos': return <Prestamos user={user} />;
             case 'abonos_semanal':
-                // Solo admin puede registrar abonos
-                // Usa el grid bimestral con checkboxes
+                // Solo admin - Grid simple con guardado instantáneo
                 if (user.rol !== 'admin') {
                     setCurrentView('home');
                     return null;
                 }
-                return <AbonosSemanal user={user} />;
+                return <GridSemanalSimple user={user} />;
             case 'config':
                 // RBAC: Solo admin puede ver config
                 if (user.rol !== 'admin') {
@@ -244,7 +243,7 @@ const Dashboard = ({ user, onLogout }) => {
                                 padding: '2px 6px',
                                 borderRadius: '8px',
                                 fontWeight: '600'
-                            }}>v5.9 • 18:56</span>
+                            }}>v5.10 • 19:05</span>
                         </div>
                     </div>
 
