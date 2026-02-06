@@ -222,7 +222,7 @@ const Dashboard = ({ user, onLogout }) => {
                                 padding: '2px 6px',
                                 borderRadius: '8px',
                                 fontWeight: '600'
-                            }}>v5.22 • 23:55</span>
+                            }}>v5.23 • {new Date().getHours()}:{new Date().getMinutes().toString().padStart(2, '0')}</span>
                         </div>
                     </div>
 
