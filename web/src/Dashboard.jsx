@@ -248,7 +248,7 @@ const Dashboard = ({ user, onLogout }) => {
                                 padding: '2px 6px',
                                 borderRadius: '8px',
                                 fontWeight: '600'
-                            }}>v5.16 • 20:35</span>
+                            }}>v5.17 • 20:55</span>
                         </div>
                     </div>
 

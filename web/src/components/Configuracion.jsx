@@ -57,14 +57,26 @@ const Configuracion = ({ user }) => {
 
     const handleCreateAviso = async (e) => {
         e.preventDefault();
-        await fetch('./api/avisos/create.php', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(avisoData)
-        });
-        setShowAvisoForm(false);
-        setAvisoData({ titulo: '', contenido: '', prioridad: 'media' });
-        fetchAvisos();
+        try {
+            const res = await fetch('./api/avisos/create.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(avisoData)
+            });
+            const data = await res.json();
+
+            if (data.success) {
+                alert('Aviso publicado correctamente');
+                setShowAvisoForm(false);
+                setAvisoData({ titulo: '', contenido: '', destinatario_id: '', prioridad: 'media' });
+                fetchAvisos();
+            } else {
+                alert('Error al publicar: ' + data.message);
+            }
+        } catch (error) {
+            console.error(error);
+            alert('Error de conexión al publicar aviso');
+        }
     };
 
     const handleDeleteAviso = async (id) => {
