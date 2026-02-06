@@ -57,20 +57,61 @@ const GridSemanalSimple = ({ user }) => {
     };
 
     const handleClick = async (socio, semana) => {
-        // Si ya está pagado, no hacer nada
-        if (estaPagado(socio.id, semana)) {
-            alert('Esta semana ya está pagada');
-            return;
-        }
-
-        // Confirmar
+        const pagado = estaPagado(socio.id, semana);
         const mesNombre = nombresMeses[mesActual];
         const cupos = parseInt(socio.cupos) || 1;
         const monto = cupos * 100;
 
+        // Si ya está pagado, ELIMINAR
+        if (pagado) {
+            const confirmar = window.confirm(
+                `¿ELIMINAR abono de ${socio.nombre_completo}?\n\n` +
+                `Semana ${semana} de ${mesNombre}\n` +
+                `Monto: $${monto}\n\n` +
+                `Esto revertirá el saldo del socio.`
+            );
+
+            if (!confirmar) return;
+
+            // Eliminar
+            setSaving({ socioId: socio.id, semana });
+            console.log('🗑️ Eliminando abono:', { socio: socio.nombre_completo, semana });
+
+            try {
+                const descripcion = `Semana ${semana} de ${mesNombre}`;
+
+                const response = await fetch('./api/movimientos/delete.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        socio_id: socio.id,
+                        descripcion: descripcion
+                    })
+                });
+
+                const data = await response.json();
+                console.log('📨 Respuesta DELETE:', data);
+
+                if (data.success) {
+                    console.log('✅ Eliminado exitoso, recargando...');
+                    await cargarDatos();
+                } else {
+                    alert('❌ Error al eliminar: ' + (data.message || 'Error desconocido'));
+                }
+            } catch (error) {
+                console.error('💥 Error:', error);
+                alert('Error de conexión al eliminar');
+            } finally {
+                setSaving(null);
+            }
+
+            return;
+        }
+
+        // Si NO está pagado, AGREGAR
         const confirmar = window.confirm(
-            `Registrar abono para ${socio.nombre_completo}?\\n\\n` +
-            `Semana ${semana} de ${mesNombre}\\n` +
+            `Registrar abono para ${socio.nombre_completo}?\n\n` +
+            `Semana ${semana} de ${mesNombre}\n` +
             `Monto: $${monto}`
         );
 
@@ -214,20 +255,21 @@ const GridSemanalSimple = ({ user }) => {
                                         <td key={semana} style={{ padding: '12px', textAlign: 'center' }}>
                                             <button
                                                 onClick={() => handleClick(socio, semana)}
-                                                disabled={pagado || guardando}
+                                                disabled={guardando}
                                                 style={{
                                                     width: '40px',
                                                     height: '40px',
                                                     borderRadius: '8px',
                                                     border: pagado ? '2px solid #86efac' : '2px solid var(--border)',
                                                     background: pagado ? '#f0fdf4' : 'white',
-                                                    cursor: pagado ? 'default' : 'pointer',
+                                                    cursor: guardando ? 'wait' : 'pointer',
                                                     display: 'flex',
                                                     alignItems: 'center',
                                                     justifyContent: 'center',
                                                     transition: 'all 0.2s',
                                                     opacity: guardando ? 0.5 : 1
                                                 }}
+                                                title={pagado ? 'Click para eliminar' : 'Click para registrar'}
                                             >
                                                 {guardando ? (
                                                     <Loader size={20} className="spin" style={{ color: 'var(--primary)' }} />
