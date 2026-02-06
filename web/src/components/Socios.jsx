@@ -135,16 +135,60 @@ const Socios = () => {
     return (
         <div className="animate-fade-in">
             {/* Header omitted for brevity, logic remains same */}
-            <div style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                marginBottom: '20px'
-            }} className="mobile-stack">
-                <h2 style={{ fontSize: '1.5rem', color: 'var(--primary-dark)' }}>Gestión de Socios</h2>
-                <button className="btn-primary" onClick={() => setShowForm(true)}>
-                    <UserPlus size={18} style={{ marginRight: '5px' }} /> Nuevo Socio
-                </button>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '10px' }}>
+                <div style={{ display: 'flex', gap: '10px' }}>
+                    <h2 style={{ fontSize: '1.5rem', margin: 0, color: 'var(--primary-dark)' }}>Gestión de Socios</h2>
+                    {/* View Triggers */}
+                    <div style={{ display: 'flex', background: '#f1f5f9', padding: '4px', borderRadius: '8px', marginLeft: '10px' }}>
+                        <button
+                            onClick={() => setViewMode('active')}
+                            style={{
+                                padding: '5px 12px', borderRadius: '6px', border: 'none',
+                                background: viewMode === 'active' ? 'white' : 'transparent',
+                                fontWeight: viewMode === 'active' ? '600' : '400',
+                                boxShadow: viewMode === 'active' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
+                                cursor: 'pointer',
+                                color: 'var(--text-main)'
+                            }}
+                        >Activos</button>
+                        <button
+                            onClick={() => setViewMode('pending')}
+                            style={{
+                                padding: '5px 12px', borderRadius: '6px', border: 'none',
+                                background: viewMode === 'pending' ? 'white' : 'transparent',
+                                fontWeight: viewMode === 'pending' ? '600' : '400',
+                                boxShadow: viewMode === 'pending' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
+                                cursor: 'pointer',
+                                display: 'flex', alignItems: 'center', gap: '5px',
+                                color: 'var(--text-main)'
+                            }}
+                        >
+                            Solicitudes
+                            {socios.filter(s => s.status === 'pending').length > 0 &&
+                                <span style={{ background: '#ef4444', color: 'white', fontSize: '0.6rem', padding: '1px 5px', borderRadius: '10px' }}>
+                                    {socios.filter(s => s.status === 'pending').length}
+                                </span>
+                            }
+                        </button>
+                    </div>
+                </div>
+
+                <div style={{ display: 'flex', gap: '10px' }}>
+                    <button
+                        onClick={() => setShowImportModal(true)}
+                        className="btn-secondary"
+                        style={{ display: 'flex', alignItems: 'center', gap: '5px' }}
+                    >
+                        <Upload size={18} /> <span className="hide-mobile">Importar CSV</span>
+                    </button>
+                    <button
+                        onClick={() => setShowForm(true)}
+                        className="btn-primary"
+                        style={{ display: 'flex', alignItems: 'center', gap: '5px' }}
+                    >
+                        <UserPlus size={18} /> Nuevo Socio
+                    </button>
+                </div>
             </div>
 
             {/* Table Rendering same as before... */}
@@ -226,17 +270,30 @@ const Socios = () => {
                                         </td>
                                         <td style={{ padding: '15px 20px', textAlign: 'center' }}>
                                             <div style={{ display: 'flex', justifyContent: 'center', gap: '8px' }}>
-                                                <button
-                                                    onClick={() => setSelectedSocio(socio)}
-                                                    title="Editar Detalle"
-                                                    className="btn-icon"
-                                                    style={{
-                                                        background: '#eff6ff', border: '1px solid #dbeafe',
-                                                        padding: '6px', borderRadius: '6px', color: '#2563eb', cursor: 'pointer'
-                                                    }}
-                                                >
-                                                    Edit
-                                                </button>
+                                                {viewMode === 'active' ? (
+                                                    <button
+                                                        onClick={() => setSelectedSocio(socio)}
+                                                        title="Editar Detalle"
+                                                        className="btn-icon"
+                                                        style={{
+                                                            background: '#eff6ff', border: '1px solid #dbeafe',
+                                                            padding: '6px', borderRadius: '6px', color: '#2563eb', cursor: 'pointer'
+                                                        }}
+                                                    >
+                                                        Edit
+                                                    </button>
+                                                ) : (
+                                                    <button
+                                                        onClick={() => handleApprove(socio)}
+                                                        className="btn-primary"
+                                                        style={{
+                                                            padding: '6px 12px', fontSize: '0.8rem',
+                                                            background: '#16a34a', border: 'none'
+                                                        }}
+                                                    >
+                                                        Aprobar
+                                                    </button>
+                                                )}
                                             </div>
                                         </td>
                                     </tr>
@@ -246,6 +303,50 @@ const Socios = () => {
                     </table>
                 </div>
             </div>
+
+            {/* Import Modal */}
+            {showImportModal && (
+                <div className="modal-overlay" style={{
+                    position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+                    background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 3000
+                }}>
+                    <div className="glass-panel animate-scale-in" style={{ width: '90%', maxWidth: '400px', padding: '30px' }}>
+                        <h3>Importar Socios</h3>
+                        <p style={{ fontSize: '0.9rem', color: '#64748b', marginBottom: '20px' }}>
+                            Sube un archivo CSV con las columnas: <br />
+                            <code>Nombre, Telefono, Cupos, SaldoInicial</code>
+                        </p>
+
+                        <input
+                            type="file"
+                            accept=".csv"
+                            onChange={(e) => setImportFile(e.target.files[0])}
+                            style={{ marginBottom: '20px', width: '100%' }}
+                        />
+
+                        {importResult && (
+                            <div style={{
+                                padding: '10px', marginBottom: '15px', borderRadius: '8px', fontSize: '0.9rem',
+                                background: importResult.success ? '#dcfce7' : '#fee2e2',
+                                color: importResult.success ? '#166534' : '#991b1b'
+                            }}>
+                                {importResult.message}
+                            </div>
+                        )}
+
+                        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
+                            <button className="btn-secondary" onClick={() => setShowImportModal(false)}>Cerrar</button>
+                            <button
+                                className="btn-primary"
+                                onClick={handleImport}
+                                disabled={!importFile || importing}
+                            >
+                                {importing ? 'Importando...' : 'Subir Archivo'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {/* Modal de Detalles / Edición */}
             {selectedSocio && (
