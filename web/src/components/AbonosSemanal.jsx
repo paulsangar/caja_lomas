@@ -72,15 +72,37 @@ const AbonosSemanal = ({ user }) => {
 
     const columnas = getColumnas();
 
+
     const checkPago = (socioId, mesIndex, semanaId) => {
-        // Validación robusta: ID flexible y coincidencia de texto insensible a mayúsculas
         const mesNombre = nombresMeses[mesIndex];
-        return movimientos.some(m =>
-            m.socio_id == socioId &&
-            m.tipo === 'aportacion' &&
-            m.descripcion.toLowerCase().includes(`semana ${semanaId}`) &&
-            m.descripcion.toLowerCase().includes(mesNombre.toLowerCase())
-        );
+
+        // Buscar en movimientos
+        const match = movimientos.find(m => {
+            // Comparación flexible de IDs
+            const socioMatch = m.socio_id == socioId;
+            const tipoMatch = m.tipo === 'aportacion';
+
+            if (!socioMatch || !tipoMatch) return false;
+
+            const desc = (m.descripcion || '').toLowerCase();
+            const semanaStr = `semana ${semanaId}`;
+            const mesStr = mesNombre.toLowerCase();
+
+            const tieneSemanaMes = desc.includes(semanaStr) && desc.includes(mesStr);
+
+            // DEBUG: Log solo para las primeras 3 para no saturar consola
+            if (socioId <= 3) {
+                console.log(`🔍 Check: Socio ${socioId}, Semana ${semanaId} ${mesNombre}`, {
+                    descripcion: m.descripcion,
+                    match: tieneSemanaMes,
+                    buscando: `"${semanaStr}" + "${mesStr}"`
+                });
+            }
+
+            return tieneSemanaMes;
+        });
+
+        return !!match;
     };
 
     const isSelected = (socioId, colId) => selectedPayments.includes(`${socioId}|${colId}`);
@@ -204,6 +226,14 @@ const AbonosSemanal = ({ user }) => {
         console.log('🔄 Recargando datos...');
         await fetchDatos();
         console.log('✅ Datos recargados');
+        console.log('📊 Total movimientos cargados:', movimientos.length);
+        console.log('🔹 Aportaciones:', movimientos.filter(m => m.tipo === 'aportacion').length);
+
+        // Logging de muestra (primeros 3)
+        movimientos.filter(m => m.tipo === 'aportacion').slice(0, 3).forEach(m => {
+            console.log('  📝', m.socio_id, '-', m.descripcion);
+        });
+
         setIsSaving(false);
     };
 
