@@ -8,6 +8,11 @@ const Prestamos = ({ user }) => {
     const [showForm, setShowForm] = useState(false);
     const [expandedRow, setExpandedRow] = useState(null);
 
+    // Modales y manejo de abonos
+    const [showAbonoModal, setShowAbonoModal] = useState(false);
+    const [selectedPrestamo, setSelectedPrestamo] = useState(null);
+    const [abonoAmount, setAbonoAmount] = useState('');
+
     const fetchPrestamos = async () => {
         setLoading(true);
         try {
