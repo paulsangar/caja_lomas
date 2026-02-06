@@ -26,8 +26,8 @@ const GridSemanalSimple = ({ user }) => {
         setLoading(true);
         try {
             const [resSocios, resMovs] = await Promise.all([
-                fetch('./api/socios/list.php'),
-                fetch('./api/movimientos/list.php')
+                fetch('./api/socios/list.php?t=' + Date.now(), { cache: 'no-store' }),
+                fetch('./api/movimientos/list.php?t=' + Date.now(), { cache: 'no-store' })
             ]);
             const dataSocios = await resSocios.json();
             const dataMovs = await resMovs.json();
