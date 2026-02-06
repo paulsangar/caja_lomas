@@ -286,21 +286,19 @@ const Dashboard = ({ user, onLogout }) => {
                     </div>
                 </div>
 
-                <nav className="main-nav" style={{
+                {/* Desktop/Tablet Top Nav (Hidden on Mobile, replaced by Bottom Nav) */}
+                <nav className="desktop-top-nav" style={{
                     display: 'flex',
-                    gap: '5px',
-                    overflowX: 'auto',
-                    padding: '5px',
-                    margin: '0 -5px',
-                    scrollSnapType: 'x mandatory'
+                    gap: '10px',
+                    padding: '5px'
                 }}>
                     {[
-                        { id: 'home', icon: <Home size={20} />, label: 'Inicio' },
-                        { id: 'socios', icon: <Users size={20} />, label: 'Socios' },
-                        { id: 'abonos_semanal', icon: <Calendar size={20} />, label: 'Abonos' },
-                        { id: 'prestamos', icon: <Landmark size={20} />, label: 'Préstamos' },
-                        { id: 'movimientos', icon: <History size={20} />, label: 'Historial' },
-                        { id: 'config', icon: <Settings size={20} />, label: 'Config' }
+                        { id: 'home', icon: <Home size={18} />, label: 'Inicio' },
+                        { id: 'socios', icon: <Users size={18} />, label: 'Socios' },
+                        { id: 'abonos_semanal', icon: <Calendar size={18} />, label: 'Abonos' },
+                        { id: 'prestamos', icon: <Landmark size={18} />, label: 'Préstamos' },
+                        { id: 'movimientos', icon: <History size={18} />, label: 'Historial' },
+                        { id: 'config', icon: <Settings size={18} />, label: 'Config' }
                     ].filter(item => {
                         // V5.6 RBAC: Socios NO ven Socios, Config, ni Movimientos
                         if (user.rol !== 'admin') {
@@ -313,13 +311,17 @@ const Dashboard = ({ user, onLogout }) => {
                             onClick={() => setCurrentView(item.id)}
                             className={`nav-link ${currentView === item.id ? 'active' : ''}`}
                             style={{
-                                flex: '1',
-                                minWidth: '70px',
-                                flexDirection: 'column',
-                                gap: '4px',
-                                padding: '10px 5px',
-                                fontSize: '0.75rem',
-                                borderRadius: '10px'
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '8px',
+                                padding: '8px 16px',
+                                fontSize: '0.85rem',
+                                borderRadius: '8px',
+                                border: 'none',
+                                background: currentView === item.id ? 'var(--primary-light)' : 'transparent',
+                                color: currentView === item.id ? 'var(--primary)' : 'var(--text-muted)',
+                                cursor: 'pointer',
+                                fontWeight: '600'
                             }}
                         >
                             {item.icon}
@@ -330,6 +332,41 @@ const Dashboard = ({ user, onLogout }) => {
             </header >
 
             <main>{renderView()}</main>
+
+            {/* Footer with Branding */}
+            <footer style={{
+                textAlign: 'center',
+                padding: '20px',
+                color: 'var(--text-muted)',
+                fontSize: '0.8rem',
+                borderTop: '1px solid var(--border)',
+                marginTop: 'auto'
+            }}>
+                <p>Sistema de Caja de Ahorro v5.23</p>
+                <p style={{ fontWeight: '600', color: 'var(--primary)', marginTop: '5px' }}>
+                    Created by MASC MEDIA 2026
+                </p>
+            </footer>
+
+            {/* FIXED BOTTOM NAVIGATION (Mobile Only) */}
+            <nav className="mobile-bottom-nav">
+                {[
+                    { id: 'home', icon: <Home size={22} />, label: 'Inicio' },
+                    { id: 'socios', icon: <Users size={22} />, label: 'Socios', adminOnly: true },
+                    { id: 'prestamos', icon: <Landmark size={22} />, label: 'Préstamos' },
+                    { id: 'abonos_semanal', icon: <Calendar size={22} />, label: 'Abonos' },
+                    { id: 'config', icon: <Settings size={22} />, label: 'Más', adminOnly: true }
+                ].filter(item => !item.adminOnly || user.rol === 'admin').map((item) => (
+                    <button
+                        key={item.id}
+                        onClick={() => setCurrentView(item.id)}
+                        className={`bottom-nav-item ${currentView === item.id ? 'active' : ''}`}
+                    >
+                        {item.icon}
+                        <span>{item.label}</span>
+                    </button>
+                ))}
+            </nav>
 
             {/* Notices Popup (Global) */}
             {showNotices && (
@@ -361,7 +398,12 @@ const Dashboard = ({ user, onLogout }) => {
                                             {!isRead && <span style={{ fontSize: '0.6rem', background: '#ef4444', color: 'white', padding: '2px 6px', borderRadius: '10px' }}>NUEVO</span>}
                                         </div>
                                         <p style={{ fontSize: '0.9rem', color: 'var(--text-main)', lineHeight: '1.4' }}>{aviso.contenido}</p>
-                                        {isRead && <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginTop: '5px', textAlign: 'right' }}>Leído</div>}
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '8px' }}>
+                                            <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
+                                                {new Date(aviso.fecha_creacion || Date.now()).toLocaleString()}
+                                            </span>
+                                            {isRead && <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Leído</span>}
+                                        </div>
                                     </div>
                                 );
                             })}
@@ -380,7 +422,7 @@ const Dashboard = ({ user, onLogout }) => {
                             className="btn-primary"
                             style={{ width: '100%', marginTop: '25px' }}
                         >
-                            Marcar como Leído
+                            Entendido
                         </button>
                     </div>
                 </div>

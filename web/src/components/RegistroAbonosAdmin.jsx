@@ -68,7 +68,7 @@ const RegistroAbonosAdmin = ({ user }) => {
         ).length;
     };
 
-    const registrarAbono = async (socio = null) => {
+    const registrarAbono = async (socio = null, montoOverride = null, descOverride = null) => {
         const socioTarget = socio || socioSeleccionado;
 
         if (!socioTarget) {
@@ -76,7 +76,7 @@ const RegistroAbonosAdmin = ({ user }) => {
             return;
         }
 
-        const montoNum = parseFloat(monto);
+        const montoNum = parseFloat(montoOverride || monto);
         if (!montoNum || montoNum <= 0) {
             setMensaje({ tipo: 'error', texto: 'Ingresa un monto válido' });
             return;
@@ -90,7 +90,7 @@ const RegistroAbonosAdmin = ({ user }) => {
                 socio_id: socioTarget.id,
                 tipo: 'aportacion',
                 monto: montoNum,
-                descripcion: descripcion || `Abono - ${new Date().toLocaleDateString('es-MX')}`
+                descripcion: descOverride || descripcion || `Abono - ${new Date().toLocaleDateString('es-MX')}`
             };
 
             console.log('📤 Registrando:', payload);
@@ -328,10 +328,42 @@ const RegistroAbonosAdmin = ({ user }) => {
                                                         cursor: procesando ? 'wait' : 'pointer',
                                                         fontSize: '0.85rem',
                                                         fontWeight: '500',
-                                                        opacity: procesando ? 0.5 : 1
+                                                        opacity: procesando ? 0.5 : 1,
+                                                        marginRight: '5px'
                                                     }}
                                                 >
                                                     + ${montoSugerido}
+                                                </button>
+                                                <button
+                                                    onClick={() => {
+                                                        const montoMes = montoSugerido * 4;
+                                                        const confirmar = window.confirm(`¿Registrar PAGO MENSUAL (4 semanas) para ${socio.nombre_completo}?\n\nMonto Total: $${montoMes}`);
+                                                        if (confirmar) {
+                                                            setMonto(montoMes.toString());
+                                                            setSocioSeleccionado(socio);
+                                                            setDescripcion(`Pago Mensual - ${new Date().toLocaleDateString('es-MX', { month: 'long' })}`);
+                                                            // We need to pass the specific amount because state update might be slow
+                                                            // But registrarAbono uses state 'monto'. 
+                                                            // Let's modify registrarAbono slightly or hack it by setting state then calling.
+                                                            // Better: Modify registrarAbono to accept override args.
+                                                            registrarAbono(socio, montoMes, `Pago Mensual - ${new Date().toLocaleDateString('es-MX', { month: 'long' })}`);
+                                                        }
+                                                    }}
+                                                    disabled={procesando}
+                                                    title="Pagar Mes Completo (4 Semanas)"
+                                                    style={{
+                                                        padding: '6px 12px',
+                                                        borderRadius: '6px',
+                                                        background: '#8b5cf6', // Violet
+                                                        color: 'white',
+                                                        border: 'none',
+                                                        cursor: procesando ? 'wait' : 'pointer',
+                                                        fontSize: '0.85rem',
+                                                        fontWeight: '500',
+                                                        opacity: procesando ? 0.5 : 1
+                                                    }}
+                                                >
+                                                    Mes
                                                 </button>
                                             </td>
                                         </tr>
