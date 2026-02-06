@@ -27,10 +27,26 @@ if (empty($nombre) || empty($numero_socio)) {
 }
 
 try {
+    // Check for duplicates before transaction
+    $stmt = $pdo->prepare("SELECT COUNT(*) FROM socios WHERE numero_socio = ?");
+    $stmt->execute([$numero_socio]);
+    if ($stmt->fetchColumn() > 0) {
+        http_response_code(400);
+        echo json_encode(['success' => false, 'message' => "El número de socio '$numero_socio' ya está registrado."]);
+        exit;
+    }
+
+    $username = 'socio_' . $numero_socio;
+    $stmt = $pdo->prepare("SELECT COUNT(*) FROM usuarios WHERE username = ?");
+    $stmt->execute([$username]);
+    if ($stmt->fetchColumn() > 0) {
+        // If username exists but socio doesn't (orphan?), try suffixing
+        $username = $username . '_' . time();
+    }
+
     $pdo->beginTransaction();
 
     // 1. Crear el usuario
-    $username = 'socio_' . $numero_socio;
     $password_hash = password_hash($password, PASSWORD_DEFAULT);
 
     $stmt = $pdo->prepare("INSERT INTO usuarios (username, password_hash, nombre_completo, rol, email) VALUES (?, ?, ?, 'socio', ?)");

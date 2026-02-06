@@ -57,8 +57,30 @@ const Socios = () => {
         return <span style={{ fontSize: '0.8em', marginLeft: '5px' }}>{sortConfig.direction === 'asc' ? '▲' : '▼'}</span>;
     };
 
+    const handleEditSocio = async (e) => {
+        e.preventDefault();
+        try {
+            const res = await fetch('./api/socios/update.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(selectedSocio) // selectedSocio acts as the editing state
+            });
+            const data = await res.json();
+            if (data.success) {
+                alert('Socio actualizado');
+                setSelectedSocio(null);
+                fetchSocios();
+            } else {
+                alert('Error: ' + data.message);
+            }
+        } catch (error) {
+            alert('Error de conexión');
+        }
+    };
+
     return (
         <div className="animate-fade-in">
+            {/* Header omitted for brevity, logic remains same */}
             <div style={{
                 display: 'flex',
                 justifyContent: 'space-between',
@@ -71,6 +93,7 @@ const Socios = () => {
                 </button>
             </div>
 
+            {/* Table Rendering same as before... */}
             <div className="glass-panel" style={{ padding: '0', overflow: 'hidden' }}>
                 <div style={{ padding: '15px 20px', borderBottom: '1px solid var(--border)', display: 'flex', gap: '15px', background: '#f8fafc' }}>
                     <div style={{ position: 'relative', flex: 1, maxWidth: '400px' }}>
@@ -153,8 +176,7 @@ const Socios = () => {
                                                     onClick={() => {
                                                         const newPass = prompt(`Resetear contraseña para ${socio.nombre_completo}?`, "123456");
                                                         if (newPass) {
-                                                            // Aquí iría la llamada a API para reset (pendiente backend)
-                                                            alert("Funcionalidad de backend pendiente para password: " + newPass);
+                                                            alert("Funcionalidad de backend pendiente para password.");
                                                         }
                                                     }}
                                                     title="Resetear Contraseña"
@@ -168,14 +190,15 @@ const Socios = () => {
                                                 </button>
                                                 <button
                                                     onClick={() => setSelectedSocio(socio)}
-                                                    title="Ver Detalle"
+                                                    title="Editar Detalle"
                                                     className="btn-icon"
                                                     style={{
                                                         background: '#eff6ff', border: '1px solid #dbeafe',
                                                         padding: '6px', borderRadius: '6px', color: '#2563eb', cursor: 'pointer'
                                                     }}
                                                 >
-                                                    <User size={16} />
+                                                    {/* Changed Icon to Pencil/Edit implies editing in modal */}
+                                                    Edit
                                                 </button>
                                             </div>
                                         </td>
@@ -187,58 +210,66 @@ const Socios = () => {
                 </div>
             </div>
 
-            {/* Modal de Detalles */}
+            {/* Modal de Detalles / Edición */}
             {selectedSocio && (
                 <div className="modal-overlay" style={{
                     position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
                     background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 3000
                 }}>
                     <div className="glass-panel animate-slide-up" style={{ width: '90%', maxWidth: '500px', padding: '0', overflow: 'hidden' }}>
-                        <div style={{ padding: '20px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#f8fafc' }}>
-                            <h3 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '10px' }}>
-                                <User size={20} color="var(--primary)" /> Detalle del Socio
-                            </h3>
-                            <button onClick={() => setSelectedSocio(null)} style={{ background: 'none', border: 'none', cursor: 'pointer' }}>
-                                <X size={24} color="var(--text-muted)" />
-                            </button>
-                        </div>
-                        <div style={{ padding: '30px' }}>
-                            <div style={{ textAlign: 'center', marginBottom: '30px' }}>
-                                <div style={{ width: '80px', height: '80px', background: 'var(--primary-light)', color: 'var(--primary)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '2rem', fontWeight: 'bold', margin: '0 auto 15px' }}>
-                                    {selectedSocio.nombre_completo.charAt(0)}
-                                </div>
-                                <h2 style={{ fontSize: '1.4rem', marginBottom: '5px' }}>{selectedSocio.nombre_completo}</h2>
-                                <span style={{ background: '#eff6ff', color: 'var(--primary)', padding: '4px 12px', borderRadius: '15px', fontSize: '0.9rem', fontWeight: '600' }}>
-                                    Socio #{selectedSocio.numero_socio}
-                                </span>
+                        <form onSubmit={handleEditSocio}>
+                            <div style={{ padding: '20px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#f8fafc' }}>
+                                <h3 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                    <User size={20} color="var(--primary)" /> Editar Socio
+                                </h3>
+                                <button type="button" onClick={() => setSelectedSocio(null)} style={{ background: 'none', border: 'none', cursor: 'pointer' }}>
+                                    <X size={24} color="var(--text-muted)" />
+                                </button>
                             </div>
+                            <div style={{ padding: '30px', display: 'flex', flexDirection: 'column', gap: '15px' }}>
+                                <h2 style={{ fontSize: '1.2rem', marginBottom: '5px' }}>{selectedSocio.nombre_completo}</h2>
 
-                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
-                                <div style={{ background: '#f8fafc', padding: '15px', borderRadius: '10px' }}>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '5px', color: 'var(--text-muted)', fontSize: '0.85rem' }}>
-                                        <CreditCard size={14} /> Banco
-                                    </div>
-                                    <div style={{ fontWeight: '500' }}>{selectedSocio.banco || 'No registrado'}</div>
-                                    <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{selectedSocio.numero_cuenta}</div>
-                                </div>
-                                <div style={{ background: '#f8fafc', padding: '15px', borderRadius: '10px' }}>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '5px', color: 'var(--text-muted)', fontSize: '0.85rem' }}>
-                                        <Phone size={14} /> Contacto
-                                    </div>
-                                    <div style={{ fontWeight: '500' }}>{selectedSocio.telefono || 'Sin teléfono'}</div>
-                                    <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{selectedSocio.email}</div>
-                                </div>
-                                <div style={{ background: '#f8fafc', padding: '15px', borderRadius: '10px', gridColumn: 'span 2' }}>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '5px', color: 'var(--text-muted)', fontSize: '0.85rem' }}>
-                                        <Calendar size={14} /> Fecha de Nacimiento
-                                    </div>
-                                    <div style={{ fontWeight: '500' }}>{selectedSocio.fecha_nacimiento ? new Date(selectedSocio.fecha_nacimiento).toLocaleDateString() : 'No registrada'}</div>
-                                </div>
+                                <label style={{ fontSize: '0.8rem', fontWeight: '600' }}>Teléfono</label>
+                                <input
+                                    value={selectedSocio.telefono || ''}
+                                    onChange={e => setSelectedSocio({ ...selectedSocio, telefono: e.target.value })}
+                                    style={{ padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e1' }}
+                                />
+
+                                <label style={{ fontSize: '0.8rem', fontWeight: '600' }}>Email</label>
+                                <input
+                                    value={selectedSocio.email || ''}
+                                    onChange={e => setSelectedSocio({ ...selectedSocio, email: e.target.value })}
+                                    style={{ padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e1' }}
+                                />
+
+                                <label style={{ fontSize: '0.8rem', fontWeight: '600' }}>Banco</label>
+                                <input
+                                    value={selectedSocio.banco || ''}
+                                    onChange={e => setSelectedSocio({ ...selectedSocio, banco: e.target.value })}
+                                    style={{ padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e1' }}
+                                />
+
+                                <label style={{ fontSize: '0.8rem', fontWeight: '600' }}>Cuenta / CLABE</label>
+                                <input
+                                    value={selectedSocio.numero_cuenta || ''}
+                                    onChange={e => setSelectedSocio({ ...selectedSocio, numero_cuenta: e.target.value })}
+                                    style={{ padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e1' }}
+                                />
+
+                                <label style={{ fontSize: '0.8rem', fontWeight: '600' }}>Cupos</label>
+                                <input
+                                    type="number"
+                                    value={selectedSocio.cupos || 1}
+                                    onChange={e => setSelectedSocio({ ...selectedSocio, cupos: e.target.value })}
+                                    style={{ padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e1' }}
+                                />
                             </div>
-                        </div>
-                        <div style={{ padding: '20px', background: '#f8fafc', borderTop: '1px solid var(--border)', textAlign: 'right' }}>
-                            <button className="btn-secondary" onClick={() => setSelectedSocio(null)}>Cerrar</button>
-                        </div>
+                            <div style={{ padding: '20px', background: '#f8fafc', borderTop: '1px solid var(--border)', textAlign: 'right', display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
+                                <button type="button" className="btn-secondary" onClick={() => setSelectedSocio(null)}>Cancelar</button>
+                                <button type="submit" className="btn-primary">Guardar Cambios</button>
+                            </div>
+                        </form>
                     </div>
                 </div>
             )}

@@ -185,62 +185,10 @@ const Dashboard = ({ user, onLogout }) => {
                             </div>
                         )}
 
-                        {/* Notices Popup (Only for Non-Admins) - With Persistent Dismissal */}
-                        {showNotices && (
-                            <div className="modal-overlay" style={{
-                                position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-                                background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center',
-                                justifyContent: 'center', zIndex: 2000, padding: '20px'
-                            }}>
-                                <div className="glass-panel animate-fade-in" style={{
-                                    width: '100%', maxWidth: '450px', padding: '30px', position: 'relative'
-                                }}>
-                                    <h3 style={{ marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
-                                        <Bell color="var(--warning)" size={24} /> Avisos Importantes
-                                    </h3>
-                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '15px', maxHeight: '60vh', overflowY: 'auto' }}>
-                                        {stats.avisos.map(aviso => {
-                                            const avisosLeidos = JSON.parse(localStorage.getItem(`avisos_leidos_${user.id}`) || '[]');
-                                            const isRead = avisosLeidos.includes(aviso.id);
-                                            return (
-                                                <div key={aviso.id} style={{
-                                                    background: isRead ? '#f1f5f9' : '#f0f9ff',
-                                                    padding: '15px',
-                                                    borderRadius: '12px',
-                                                    borderLeft: isRead ? '4px solid #cbd5e1' : '4px solid var(--primary-light)',
-                                                    opacity: isRead ? 0.8 : 1
-                                                }}>
-                                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                                                        <h4 style={{ fontSize: '1rem', color: isRead ? '#64748b' : 'var(--primary)', marginBottom: '5px' }}>{aviso.titulo}</h4>
-                                                        {!isRead && <span style={{ fontSize: '0.6rem', background: '#ef4444', color: 'white', padding: '2px 6px', borderRadius: '10px' }}>NUEVO</span>}
-                                                    </div>
-                                                    <p style={{ fontSize: '0.9rem', color: 'var(--text-main)', lineHeight: '1.4' }}>{aviso.contenido}</p>
-                                                    {isRead && <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginTop: '5px', textAlign: 'right' }}>Leído</div>}
-                                                </div>
-                                            );
-                                        })}
-                                    </div>
-                                    <button
-                                        onClick={() => {
-                                            setShowNotices(false);
-                                            // 1. Obtener leídos actuales
-                                            const leidosPrevios = JSON.parse(localStorage.getItem(`avisos_leidos_${user.id}`) || '[]');
-                                            // 2. Agregar los nuevos IDs (evitando duplicados)
-                                            const nuevosIds = stats.avisos.map(a => a.id);
-                                            const combinados = [...new Set([...leidosPrevios, ...nuevosIds])];
-                                            // 3. Guardar persistente
-                                            localStorage.setItem(`avisos_leidos_${user.id}`, JSON.stringify(combinados));
-                                        }}
-                                        className="btn-primary"
-                                        style={{ width: '100%', marginTop: '25px' }}
-                                    >
-                                        Marcar como Leído
-                                    </button>
-                                </div>
-                            </div>
-                        )}
+                        {/* Modal removed - now global */}
                     </div>
                 );
+
         }
     };
 
@@ -274,7 +222,7 @@ const Dashboard = ({ user, onLogout }) => {
                                 padding: '2px 6px',
                                 borderRadius: '8px',
                                 fontWeight: '600'
-                            }}>v5.21 • 23:15</span>
+                            }}>v5.22 • 23:55</span>
                         </div>
                     </div>
 
@@ -382,6 +330,61 @@ const Dashboard = ({ user, onLogout }) => {
             </header >
 
             <main>{renderView()}</main>
+
+            {/* Notices Popup (Global) */}
+            {showNotices && (
+                <div className="modal-overlay" style={{
+                    position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+                    background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center',
+                    justifyContent: 'center', zIndex: 2000, padding: '20px'
+                }}>
+                    <div className="glass-panel animate-fade-in" style={{
+                        width: '100%', maxWidth: '450px', padding: '30px', position: 'relative'
+                    }}>
+                        <h3 style={{ marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                            <Bell color="var(--warning)" size={24} /> Avisos Importantes
+                        </h3>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '15px', maxHeight: '60vh', overflowY: 'auto' }}>
+                            {stats.avisos.map(aviso => {
+                                const avisosLeidos = JSON.parse(localStorage.getItem(`avisos_leidos_${user.id}`) || '[]');
+                                const isRead = avisosLeidos.includes(aviso.id);
+                                return (
+                                    <div key={aviso.id} style={{
+                                        background: isRead ? '#f1f5f9' : '#f0f9ff',
+                                        padding: '15px',
+                                        borderRadius: '12px',
+                                        borderLeft: isRead ? '4px solid #cbd5e1' : '4px solid var(--primary-light)',
+                                        opacity: isRead ? 0.8 : 1
+                                    }}>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                                            <h4 style={{ fontSize: '1rem', color: isRead ? '#64748b' : 'var(--primary)', marginBottom: '5px' }}>{aviso.titulo}</h4>
+                                            {!isRead && <span style={{ fontSize: '0.6rem', background: '#ef4444', color: 'white', padding: '2px 6px', borderRadius: '10px' }}>NUEVO</span>}
+                                        </div>
+                                        <p style={{ fontSize: '0.9rem', color: 'var(--text-main)', lineHeight: '1.4' }}>{aviso.contenido}</p>
+                                        {isRead && <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginTop: '5px', textAlign: 'right' }}>Leído</div>}
+                                    </div>
+                                );
+                            })}
+                        </div>
+                        <button
+                            onClick={() => {
+                                setShowNotices(false);
+                                // 1. Obtener leídos actuales
+                                const leidosPrevios = JSON.parse(localStorage.getItem(`avisos_leidos_${user.id}`) || '[]');
+                                // 2. Agregar los nuevos IDs (evitando duplicados)
+                                const nuevosIds = stats.avisos.map(a => a.id);
+                                const combinados = [...new Set([...leidosPrevios, ...nuevosIds])];
+                                // 3. Guardar persistente
+                                localStorage.setItem(`avisos_leidos_${user.id}`, JSON.stringify(combinados));
+                            }}
+                            className="btn-primary"
+                            style={{ width: '100%', marginTop: '25px' }}
+                        >
+                            Marcar como Leído
+                        </button>
+                    </div>
+                </div>
+            )}
         </div >
     );
 };

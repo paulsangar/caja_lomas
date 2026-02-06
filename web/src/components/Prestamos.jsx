@@ -284,9 +284,9 @@ const PrestamoDetalle = ({ p, saldoRestante, user, onAbonar }) => {
 
             {/* Historial de Pagos (V5.21) */}
             <div style={{ gridColumn: '1 / -1', marginTop: '10px' }}>
-                <h4 style={{ fontSize: '0.9rem', marginBottom: '10px', color: 'var(--text-main)' }}>Historial de Pagos</h4>
+                <h4 style={{ fontSize: '0.9rem', marginBottom: '10px', color: 'var(--text-main)' }}>Historial de Movimientos</h4>
                 {loading ? <div style={{ fontSize: '0.8rem' }}>Cargando historial...</div> :
-                    historial.length === 0 ? <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Sin pagos registrados</div> : (
+                    historial.length === 0 ? <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Sin movimientos registrados</div> : (
                         <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
                             <thead>
                                 <tr style={{ background: '#e2e8f0', textAlign: 'left' }}>
@@ -296,13 +296,35 @@ const PrestamoDetalle = ({ p, saldoRestante, user, onAbonar }) => {
                                 </tr>
                             </thead>
                             <tbody>
-                                {historial.map(h => (
-                                    <tr key={h.id} style={{ borderBottom: '1px solid #cbd5e1' }}>
-                                        <td style={{ padding: '8px' }}>{new Date(h.fecha_operacion).toLocaleDateString()}</td>
-                                        <td style={{ padding: '8px' }}>{h.descripcion}</td>
-                                        <td style={{ padding: '8px', fontWeight: 'bold', color: 'var(--success)' }}>+${parseFloat(h.monto).toLocaleString()}</td>
-                                    </tr>
-                                ))}
+                                {historial.map(h => {
+                                    // Determinar estilo según tipo
+                                    const esPago = h.tipo === 'pago_prestamo';
+                                    const esPrestamo = h.tipo === 'prestamo_otorgado';
+
+                                    let colorMonto = 'var(--text-main)';
+                                    let signo = '';
+
+                                    if (esPago) {
+                                        colorMonto = 'var(--success)';
+                                        signo = '+';
+                                    } else if (esPrestamo) {
+                                        colorMonto = '#2563eb'; // Blue for loan given
+                                        signo = ''; // It's the loan amount, maybe negative? No, just info.
+                                    }
+
+                                    return (
+                                        <tr key={h.id} style={{ borderBottom: '1px solid #cbd5e1', background: esPrestamo ? '#eff6ff' : 'transparent' }}>
+                                            <td style={{ padding: '8px' }}>{new Date(h.fecha_operacion).toLocaleDateString()}</td>
+                                            <td style={{ padding: '8px' }}>
+                                                {h.descripcion}
+                                                {esPrestamo && <span style={{ fontSize: '0.7rem', marginLeft: '5px', background: '#bfdbfe', padding: '2px 4px', borderRadius: '4px', color: '#1e40af' }}>CRÉDITO</span>}
+                                            </td>
+                                            <td style={{ padding: '8px', fontWeight: 'bold', color: colorMonto }}>
+                                                {signo}${parseFloat(h.monto).toLocaleString()}
+                                            </td>
+                                        </tr>
+                                    );
+                                })}
                             </tbody>
                         </table>
                     )
