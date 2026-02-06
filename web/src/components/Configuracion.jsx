@@ -25,13 +25,13 @@ const Configuracion = ({ user }) => {
     }, [activeTab]);
 
     const fetchAvisos = () => {
-        fetch('./api/avisos/list.php')
+        fetch(`./api/avisos/list.php?_t=${new Date().getTime()}`)
             .then(res => res.json())
             .then(data => data.success && setAvisos(data.data));
     };
 
     const fetchSocios = () => {
-        fetch('./api/socios/list.php')
+        fetch(`./api/socios/list.php?_t=${new Date().getTime()}`)
             .then(res => res.json())
             .then(data => data.success && setSocios(data.data));
     };

@@ -27,26 +27,63 @@ if (empty($nombre) || empty($numero_socio)) {
 }
 
 try {
-    // Check for duplicates before transaction
-    $stmt = $pdo->prepare("SELECT COUNT(*) FROM socios WHERE numero_socio = ?");
-    $stmt->execute([$numero_socio]);
-    if ($stmt->fetchColumn() > 0) {
-        http_response_code(400);
-        echo json_encode(['success' => false, 'message' => "El número de socio '$numero_socio' ya está registrado."]);
-        exit;
+    // 0. GENERACIÓN ROBUSTA DE ID (Auto-retry)
+    // Ignoramos el numero_socio enviado si es 'Auto', o intentamos usarlo pero si falla generamos uno nuevo.
+    // La estrategia más segura es calcular el ID *dentro* de la transacción o justo antes, con un loop de reintento.
+
+    $maxRetries = 5;
+    $attempt = 0;
+    $assigned_socio_id = null;
+
+    // Si el usuario envió un n_socio específico (no auto), intentamos usar ese primero.
+    $requested_id = isset($data['numero_socio']) && is_numeric($data['numero_socio']) ? $data['numero_socio'] : null;
+
+    if ($requested_id) {
+        $stmt = $pdo->prepare("SELECT COUNT(*) FROM socios WHERE numero_socio = ?");
+        $stmt->execute([$requested_id]);
+        if ($stmt->fetchColumn() == 0) {
+            $assigned_socio_id = $requested_id;
+        }
     }
 
-    $username = 'socio_' . $numero_socio;
+    // Si no se pudo usar el solicitado o no hubo, buscamos el siguiente disponible
+    if (!$assigned_socio_id) {
+        while ($attempt < $maxRetries) {
+            $stmt = $pdo->query("SELECT MAX(CAST(numero_socio AS UNSIGNED)) FROM socios");
+            $max = $stmt->fetchColumn();
+            $candidate = ($max ?? 1000) + 1; // Start at 1001 if empty
+
+            // Check validity (concurrency check)
+            $stmt = $pdo->prepare("SELECT COUNT(*) FROM socios WHERE numero_socio = ?");
+            $stmt->execute([$candidate]);
+            if ($stmt->fetchColumn() == 0) {
+                $assigned_socio_id = $candidate;
+                break;
+            }
+            $attempt++;
+        }
+    }
+
+    if (!$assigned_socio_id) {
+        throw new Exception("No se pudo asignar un número de socio único después de varios intentos. Intente nuevamente.");
+    }
+
+    // Check duplication again just to be safe (though logic above handles it)
+    // ...
+
+    $username = 'socio_' . $assigned_socio_id;
+    // Check User existence logic (same as before but using assigned_socio_id)
     $stmt = $pdo->prepare("SELECT COUNT(*) FROM usuarios WHERE username = ?");
     $stmt->execute([$username]);
     if ($stmt->fetchColumn() > 0) {
-        // If username exists but socio doesn't (orphan?), try suffixing
         $username = $username . '_' . time();
     }
 
     $pdo->beginTransaction();
 
     // 1. Crear el usuario
+    // Use $assigned_socio_id instead of $numero_socio down below
+
     $password_hash = password_hash($password, PASSWORD_DEFAULT);
 
     $stmt = $pdo->prepare("INSERT INTO usuarios (username, password_hash, nombre_completo, rol, email) VALUES (?, ?, ?, 'socio', ?)");
@@ -55,7 +92,7 @@ try {
 
     // 2. Crear el registro de socio con nuevos campos
     $stmt = $pdo->prepare("INSERT INTO socios (usuario_id, numero_socio, telefono, numero_cuenta, banco, cupos, fecha_nacimiento, fecha_ingreso) VALUES (?, ?, ?, ?, ?, ?, ?, CURDATE())");
-    $stmt->execute([$usuario_id, $numero_socio, $telefono, $numero_cuenta, $banco, $cupos, $fecha_nacimiento]);
+    $stmt->execute([$usuario_id, $assigned_socio_id, $telefono, $numero_cuenta, $banco, $cupos, $fecha_nacimiento]);
 
     $pdo->commit();
 
