@@ -6,12 +6,20 @@ require_once __DIR__ . '/../config/db.php';
 // TODO: Implementar validación de token JWT o sesión
 
 try {
-    $stmt = $pdo->query("
+    $usuario_id = $_GET['usuario_id'] ?? null;
+    $sql = "
         SELECT s.*, u.nombre_completo, u.email, u.rol 
         FROM socios s 
         JOIN usuarios u ON s.usuario_id = u.id 
-        ORDER BY s.numero_socio ASC
-    ");
+    ";
+
+    if ($usuario_id) {
+        $sql .= " WHERE u.id = ? ";
+        $stmt = $pdo->prepare($sql . " ORDER BY s.numero_socio ASC");
+        $stmt->execute([$usuario_id]);
+    } else {
+        $stmt = $pdo->query($sql . " ORDER BY s.numero_socio ASC");
+    }
     $socios = $stmt->fetchAll();
 
     echo json_encode([

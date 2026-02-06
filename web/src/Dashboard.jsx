@@ -66,12 +66,12 @@ const Dashboard = ({ user, onLogout }) => {
                 return <Movimientos user={user} />;
             case 'prestamos': return <Prestamos user={user} />;
             case 'abonos_semanal':
-                // Solo admin - Grid simple con guardado instantáneo
-                if (user.rol !== 'admin') {
-                    setCurrentView('home');
-                    return null;
+                // Si es admin, ve control. Si es socio, ve su grid.
+                if (user.rol === 'admin') {
+                    return <GridSemanalSimple user={user} />;
+                } else {
+                    return <MisAbonos user={user} />;
                 }
-                return <GridSemanalSimple user={user} />;
             case 'config':
                 // RBAC: Solo admin puede ver config
                 if (user.rol !== 'admin') {
@@ -243,7 +243,7 @@ const Dashboard = ({ user, onLogout }) => {
                                 padding: '2px 6px',
                                 borderRadius: '8px',
                                 fontWeight: '600'
-                            }}>v5.14 • 20:10</span>
+                            }}>v5.15 • 20:20</span>
                         </div>
                     </div>
 
@@ -323,9 +323,9 @@ const Dashboard = ({ user, onLogout }) => {
                         { id: 'movimientos', icon: <History size={20} />, label: 'Historial' },
                         { id: 'config', icon: <Settings size={20} />, label: 'Config' }
                     ].filter(item => {
-                        // V5.6 RBAC: Socios NO ven Abonos, Socios, Config, ni Movimientos
+                        // V5.6 RBAC: Socios NO ven Socios, Config, ni Movimientos
                         if (user.rol !== 'admin') {
-                            return item.id !== 'socios' && item.id !== 'config' && item.id !== 'movimientos' && item.id !== 'abonos_semanal';
+                            return item.id !== 'socios' && item.id !== 'config' && item.id !== 'movimientos';
                         }
                         return true;
                     }).map(item => (
