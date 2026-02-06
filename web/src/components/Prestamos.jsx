@@ -132,19 +132,21 @@ const Prestamos = ({ user }) => {
                         <div style={{ padding: '40px', textAlign: 'center', color: 'var(--text-muted)' }}>No hay préstamos activos.</div>
                     ) : (
                         prestamos.map(p => {
-                            const isOverdue = esPrestamoAtrasado(p);
-                            const total = parseFloat(p.monto_total_pagar || 0);
-                            const pagado = parseFloat(p.monto_pagado || 0);
+                            // Validar datos antes de renderizar para evitar crash
+                            if (!p) return null;
+                            const total = parseFloat(p.monto_total_pagar) || 0;
+                            const pagado = parseFloat(p.monto_pagado) || parseFloat(p.pagado) || 0; // Fallback
                             const saldoRestante = total - pagado;
+                            const isOverdue = esPrestamoAtrasado(p);
 
                             return (
                                 <div key={p.id} style={{ borderBottom: '1px solid var(--border)' }}>
                                     <div style={{ padding: '20px', display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr 120px 40px', gap: '10px', alignItems: 'center' }}>
                                         <div>
-                                            <div style={{ fontWeight: '600' }}>{p.socio_nombre}</div>
-                                            <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>ID: {p.numero_socio}</div>
+                                            <div style={{ fontWeight: '600' }}>{p.socio_nombre || 'Socio Desconocido'}</div>
+                                            <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>ID: {p.numero_socio || '?'}</div>
                                         </div>
-                                        <div style={{ fontWeight: '500' }}>${parseFloat(p.monto).toLocaleString()}</div>
+                                        <div style={{ fontWeight: '500' }}>${parseFloat(p.monto || 0).toLocaleString()}</div>
                                         <div style={{ fontWeight: '500' }}>${total.toLocaleString()}</div>
                                         <div style={{ color: '#16a34a', fontWeight: 'bold' }}>${pagado.toLocaleString()}</div>
                                         <div style={{ textAlign: 'center' }}>
@@ -165,6 +167,7 @@ const Prestamos = ({ user }) => {
                                             {expandedRow === p.id ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
                                         </button>
                                     </div>
+
 
                                     {expandedRow === p.id && (
                                         <div style={{ background: '#f8fafc', padding: '20px', display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '20px' }} className="animate-fade-in">

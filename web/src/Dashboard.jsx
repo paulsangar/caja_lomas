@@ -45,8 +45,21 @@ const Dashboard = ({ user, onLogout }) => {
     };
 
     useEffect(() => {
-        fetchStats();
-    }, [user]);
+        const initDashboard = async () => {
+            await fetchStats();
+            // Auto-repair DB schema silently to ensure columns exist
+            try {
+                fetch('./api/migrate_schema_repair.php');
+            } catch (e) {
+                console.error("Auto-repair failed", e);
+            }
+        };
+        initDashboard();
+
+        // Auto-refresh stats
+        const interval = setInterval(fetchStats, 30000);
+        return () => clearInterval(interval);
+    }, [user.id]);
 
     const renderView = () => {
         switch (currentView) {
@@ -248,7 +261,7 @@ const Dashboard = ({ user, onLogout }) => {
                                 padding: '2px 6px',
                                 borderRadius: '8px',
                                 fontWeight: '600'
-                            }}>v5.17 • 20:55</span>
+                            }}>v5.18 • 22:30</span>
                         </div>
                     </div>
 
