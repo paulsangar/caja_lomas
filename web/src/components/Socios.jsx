@@ -86,10 +86,10 @@ const Socios = () => {
                 justifyContent: 'space-between',
                 alignItems: 'center',
                 marginBottom: '20px'
-            }}>
+            }} className="mobile-stack">
                 <h2 style={{ fontSize: '1.5rem', color: 'var(--primary-dark)' }}>Gestión de Socios</h2>
                 <button className="btn-primary" onClick={() => setShowForm(true)}>
-                    <UserPlus size={18} /> Nuevo Socio
+                    <UserPlus size={18} style={{ marginRight: '5px' }} /> Nuevo Socio
                 </button>
             </div>
 
@@ -120,11 +120,11 @@ const Socios = () => {
                     <table>
                         <thead>
                             <tr>
-                                <th onClick={() => handleSort('numero_socio')} style={{ cursor: 'pointer' }}>ID <SortIcon columnKey="numero_socio" /></th>
+                                <th onClick={() => handleSort('numero_socio')} style={{ cursor: 'pointer', width: '80px' }}>ID <SortIcon columnKey="numero_socio" /></th>
                                 <th onClick={() => handleSort('nombre_completo')} style={{ cursor: 'pointer' }}>Nombre y Detalles <SortIcon columnKey="nombre_completo" /></th>
-                                <th onClick={() => handleSort('fecha_ingreso')} style={{ cursor: 'pointer' }}>Desde <SortIcon columnKey="fecha_ingreso" /></th>
-                                <th onClick={() => handleSort('cupos')} style={{ cursor: 'pointer' }}>Cupos <SortIcon columnKey="cupos" /></th>
-                                <th onClick={() => handleSort('saldo_total')} style={{ cursor: 'pointer' }}>Ahorro Total <SortIcon columnKey="saldo_total" /></th>
+                                <th className="hide-mobile" onClick={() => handleSort('fecha_ingreso')} style={{ cursor: 'pointer' }}>Desde <SortIcon columnKey="fecha_ingreso" /></th>
+                                <th className="hide-mobile" onClick={() => handleSort('cupos')} style={{ cursor: 'pointer' }}>Cupos <SortIcon columnKey="cupos" /></th>
+                                <th onClick={() => handleSort('saldo_total')} style={{ cursor: 'pointer', textAlign: 'right' }}>Ahorro <SortIcon columnKey="saldo_total" /></th>
                                 <th style={{ textAlign: 'center' }}>Acciones</th>
                             </tr>
                         </thead>
@@ -149,13 +149,13 @@ const Socios = () => {
                                             <div style={{ fontWeight: '600', color: 'var(--text-main)' }}>{socio.nombre_completo}</div>
                                             <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', display: 'flex', gap: '10px', marginTop: '4px' }}>
                                                 {socio.telefono && <span>📞 {socio.telefono}</span>}
-                                                {socio.banco && <span>🏦 {socio.banco}</span>}
+                                                {socio.banco && <span className="hide-mobile">🏦 {socio.banco}</span>}
                                             </div>
                                         </td>
-                                        <td style={{ padding: '15px 20px', fontSize: '0.9rem' }}>
+                                        <td className="hide-mobile" style={{ padding: '15px 20px', fontSize: '0.9rem' }}>
                                             {new Date(socio.fecha_ingreso).toLocaleDateString()}
                                         </td>
-                                        <td style={{ padding: '15px 20px' }}>
+                                        <td className="hide-mobile" style={{ padding: '15px 20px' }}>
                                             <span style={{
                                                 background: '#eff6ff',
                                                 color: 'var(--primary)',
@@ -167,27 +167,11 @@ const Socios = () => {
                                                 {socio.cupos || 1}
                                             </span>
                                         </td>
-                                        <td style={{ padding: '15px 20px', fontWeight: 'bold', color: '#059669' }}>
+                                        <td style={{ padding: '15px 20px', fontWeight: 'bold', color: '#059669', textAlign: 'right' }}>
                                             ${parseFloat(socio.saldo_total).toLocaleString('es-MX', { minimumFractionDigits: 2 })}
                                         </td>
                                         <td style={{ padding: '15px 20px', textAlign: 'center' }}>
                                             <div style={{ display: 'flex', justifyContent: 'center', gap: '8px' }}>
-                                                <button
-                                                    onClick={() => {
-                                                        const newPass = prompt(`Resetear contraseña para ${socio.nombre_completo}?`, "123456");
-                                                        if (newPass) {
-                                                            alert("Funcionalidad de backend pendiente para password.");
-                                                        }
-                                                    }}
-                                                    title="Resetear Contraseña"
-                                                    className="btn-icon"
-                                                    style={{
-                                                        background: '#fff7ed', border: '1px solid #ffedd5',
-                                                        padding: '6px', borderRadius: '6px', color: '#ea580c', cursor: 'pointer'
-                                                    }}
-                                                >
-                                                    <span style={{ fontSize: '0.9rem' }}>🔑</span>
-                                                </button>
                                                 <button
                                                     onClick={() => setSelectedSocio(socio)}
                                                     title="Editar Detalle"
@@ -197,7 +181,6 @@ const Socios = () => {
                                                         padding: '6px', borderRadius: '6px', color: '#2563eb', cursor: 'pointer'
                                                     }}
                                                 >
-                                                    {/* Changed Icon to Pencil/Edit implies editing in modal */}
                                                     Edit
                                                 </button>
                                             </div>

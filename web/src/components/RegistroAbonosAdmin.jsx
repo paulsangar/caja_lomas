@@ -157,13 +157,13 @@ const RegistroAbonosAdmin = ({ user }) => {
 
     return (
         <div className="animate-fade-in">
-            <div style={{ marginBottom: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div style={{ marginBottom: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }} className="mobile-stack">
                 <h2 style={{ fontSize: '1.5rem', margin: 0, display: 'flex', alignItems: 'center', gap: '10px' }}>
                     <DollarSign color="var(--primary)" /> Control de Abonos
                 </h2>
 
                 {/* Pestañas */}
-                <div style={{ display: 'flex', gap: '10px' }}>
+                <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
                     <button
                         onClick={() => setVista('general')}
                         style={{
@@ -176,7 +176,8 @@ const RegistroAbonosAdmin = ({ user }) => {
                             fontWeight: vista === 'general' ? '600' : '400',
                             display: 'flex',
                             alignItems: 'center',
-                            gap: '5px'
+                            gap: '5px',
+                            flex: '1'
                         }}
                     >
                         <List size={18} /> Vista General
@@ -193,10 +194,11 @@ const RegistroAbonosAdmin = ({ user }) => {
                             fontWeight: vista === 'registro' ? '600' : '400',
                             display: 'flex',
                             alignItems: 'center',
-                            gap: '5px'
+                            gap: '5px',
+                            flex: '1'
                         }}
                     >
-                        <UserPlus size={18} /> Registro Individual
+                        <UserPlus size={18} /> Nuevo Abono
                     </button>
                 </div>
             </div>
@@ -244,11 +246,11 @@ const RegistroAbonosAdmin = ({ user }) => {
                         <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                             <thead>
                                 <tr style={{ background: '#f8fafc', borderBottom: '2px solid var(--border)' }}>
-                                    <th style={{ padding: '12px', textAlign: 'left', fontSize: '0.85rem', fontWeight: '600' }}>#</th>
+                                    <th style={{ padding: '12px', textAlign: 'left', fontSize: '0.85rem', fontWeight: '600', width: '60px' }}>#</th>
                                     <th style={{ padding: '12px', textAlign: 'left', fontSize: '0.85rem', fontWeight: '600' }}>Socio</th>
-                                    <th style={{ padding: '12px', textAlign: 'center', fontSize: '0.85rem', fontWeight: '600' }}>Cupos</th>
-                                    <th style={{ padding: '12px', textAlign: 'center', fontSize: '0.85rem', fontWeight: '600' }}>Pagos Este Mes</th>
-                                    <th style={{ padding: '12px', textAlign: 'left', fontSize: '0.85rem', fontWeight: '600' }}>Último Pago</th>
+                                    <th className="hide-mobile" style={{ padding: '12px', textAlign: 'center', fontSize: '0.85rem', fontWeight: '600' }}>Cupos</th>
+                                    <th className="hide-mobile" style={{ padding: '12px', textAlign: 'center', fontSize: '0.85rem', fontWeight: '600' }}>Pagos Este Mes</th>
+                                    <th className="hide-mobile" style={{ padding: '12px', textAlign: 'left', fontSize: '0.85rem', fontWeight: '600' }}>Último Pago</th>
                                     <th style={{ padding: '12px', textAlign: 'center', fontSize: '0.85rem', fontWeight: '600' }}>Acción</th>
                                 </tr>
                             </thead>
@@ -273,15 +275,15 @@ const RegistroAbonosAdmin = ({ user }) => {
 
                                     return (
                                         <tr key={socio.id} style={{ borderBottom: '1px solid #e5e7eb' }}>
-                                            <td style={{ padding: '12px', fontSize: '0.9rem' }}>{socio.numero_socio}</td>
+                                            <td style={{ padding: '12px', fontSize: '0.9rem', color: 'var(--primary)', fontWeight: 'bold' }}>{socio.numero_socio}</td>
                                             <td style={{ padding: '12px' }}>
                                                 <div style={{ fontWeight: '600', fontSize: '0.9rem' }}>{socio.nombre_completo}</div>
                                                 <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
                                                     Saldo: ${parseFloat(socio.saldo_total || 0).toLocaleString()}
                                                 </div>
                                             </td>
-                                            <td style={{ padding: '12px', textAlign: 'center', fontSize: '0.9rem' }}>{cupos}</td>
-                                            <td style={{ padding: '12px', textAlign: 'center' }}>
+                                            <td className="hide-mobile" style={{ padding: '12px', textAlign: 'center', fontSize: '0.9rem' }}>{cupos}</td>
+                                            <td className="hide-mobile" style={{ padding: '12px', textAlign: 'center' }}>
                                                 <span style={{
                                                     background: estadoColor,
                                                     color: '#1f2937',
@@ -296,7 +298,7 @@ const RegistroAbonosAdmin = ({ user }) => {
                                                     {estadoIcon} {pagosEsteMes}
                                                 </span>
                                             </td>
-                                            <td style={{ padding: '12px', fontSize: '0.85rem' }}>
+                                            <td className="hide-mobile" style={{ padding: '12px', fontSize: '0.85rem' }}>
                                                 {ultimoPago ? (
                                                     <>
                                                         <div style={{ fontWeight: '500' }}>

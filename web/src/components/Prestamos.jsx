@@ -109,7 +109,7 @@ const Prestamos = ({ user }) => {
 
     return (
         <div className="animate-fade-in">
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }} className="mobile-stack">
                 <h2 style={{ fontSize: '1.5rem', display: 'flex', alignItems: 'center', gap: '10px' }}>
                     <Landmark color="var(--warning)" /> Gestión de Préstamos
                 </h2>
@@ -287,46 +287,48 @@ const PrestamoDetalle = ({ p, saldoRestante, user, onAbonar }) => {
                 <h4 style={{ fontSize: '0.9rem', marginBottom: '10px', color: 'var(--text-main)' }}>Historial de Movimientos</h4>
                 {loading ? <div style={{ fontSize: '0.8rem' }}>Cargando historial...</div> :
                     historial.length === 0 ? <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Sin movimientos registrados</div> : (
-                        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
-                            <thead>
-                                <tr style={{ background: '#e2e8f0', textAlign: 'left' }}>
-                                    <th style={{ padding: '8px' }}>Fecha</th>
-                                    <th style={{ padding: '8px' }}>Descripción</th>
-                                    <th style={{ padding: '8px' }}>Monto</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {historial.map(h => {
-                                    // Determinar estilo según tipo
-                                    const esPago = h.tipo === 'pago_prestamo';
-                                    const esPrestamo = h.tipo === 'prestamo_otorgado';
+                        <div className="table-container">
+                            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
+                                <thead>
+                                    <tr style={{ background: '#e2e8f0', textAlign: 'left' }}>
+                                        <th style={{ padding: '8px' }}>Fecha</th>
+                                        <th style={{ padding: '8px' }}>Descripción</th>
+                                        <th style={{ padding: '8px' }}>Monto</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {historial.map(h => {
+                                        // Determinar estilo según tipo
+                                        const esPago = h.tipo === 'pago_prestamo';
+                                        const esPrestamo = h.tipo === 'prestamo_otorgado';
 
-                                    let colorMonto = 'var(--text-main)';
-                                    let signo = '';
+                                        let colorMonto = 'var(--text-main)';
+                                        let signo = '';
 
-                                    if (esPago) {
-                                        colorMonto = 'var(--success)';
-                                        signo = '+';
-                                    } else if (esPrestamo) {
-                                        colorMonto = '#2563eb'; // Blue for loan given
-                                        signo = ''; // It's the loan amount, maybe negative? No, just info.
-                                    }
+                                        if (esPago) {
+                                            colorMonto = 'var(--success)';
+                                            signo = '+';
+                                        } else if (esPrestamo) {
+                                            colorMonto = '#2563eb'; // Blue for loan given
+                                            signo = ''; // It's the loan amount, maybe negative? No, just info.
+                                        }
 
-                                    return (
-                                        <tr key={h.id} style={{ borderBottom: '1px solid #cbd5e1', background: esPrestamo ? '#eff6ff' : 'transparent' }}>
-                                            <td style={{ padding: '8px' }}>{new Date(h.fecha_operacion).toLocaleDateString()}</td>
-                                            <td style={{ padding: '8px' }}>
-                                                {h.descripcion}
-                                                {esPrestamo && <span style={{ fontSize: '0.7rem', marginLeft: '5px', background: '#bfdbfe', padding: '2px 4px', borderRadius: '4px', color: '#1e40af' }}>CRÉDITO</span>}
-                                            </td>
-                                            <td style={{ padding: '8px', fontWeight: 'bold', color: colorMonto }}>
-                                                {signo}${parseFloat(h.monto).toLocaleString()}
-                                            </td>
-                                        </tr>
-                                    );
-                                })}
-                            </tbody>
-                        </table>
+                                        return (
+                                            <tr key={h.id} style={{ borderBottom: '1px solid #cbd5e1', background: esPrestamo ? '#eff6ff' : 'transparent' }}>
+                                                <td style={{ padding: '8px' }}>{new Date(h.fecha_operacion).toLocaleDateString()}</td>
+                                                <td style={{ padding: '8px' }}>
+                                                    {h.descripcion}
+                                                    {esPrestamo && <span style={{ fontSize: '0.7rem', marginLeft: '5px', background: '#bfdbfe', padding: '2px 4px', borderRadius: '4px', color: '#1e40af' }}>CRÉDITO</span>}
+                                                </td>
+                                                <td style={{ padding: '8px', fontWeight: 'bold', color: colorMonto }}>
+                                                    {signo}${parseFloat(h.monto).toLocaleString()}
+                                                </td>
+                                            </tr>
+                                        );
+                                    })}
+                                </tbody>
+                            </table>
+                        </div>
                     )
                 }
             </div>

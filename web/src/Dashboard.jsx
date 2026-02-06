@@ -194,7 +194,7 @@ const Dashboard = ({ user, onLogout }) => {
 
 
     return (
-        <div style={{ padding: '20px', maxWidth: '1300px', margin: '0 auto', minHeight: '100vh' }}>
+        <div className="dashboard-container" style={{ maxWidth: '1300px', margin: '0 auto', minHeight: '100vh' }}>
             <header style={{
                 display: 'flex',
                 flexDirection: 'column',
