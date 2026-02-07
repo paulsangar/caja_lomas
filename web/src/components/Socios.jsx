@@ -32,6 +32,14 @@ const Socios = () => {
         }
     };
 
+    // Safety timeout to prevent infinite loading
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            if (loading) setLoading(false);
+        }, 8000);
+        return () => clearTimeout(timer);
+    }, [loading]);
+
     const handleSort = (key) => {
         let direction = 'asc';
         if (sortConfig.key === key && sortConfig.direction === 'asc') {
@@ -245,9 +253,28 @@ const Socios = () => {
                                         </td>
                                         <td style={{ padding: '15px 20px' }}>
                                             <div style={{ fontWeight: '600', color: 'var(--text-main)' }}>{socio.nombre_completo}</div>
-                                            <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', display: 'flex', gap: '10px', marginTop: '4px' }}>
+                                            <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', display: 'flex', gap: '10px', marginTop: '4px', alignItems: 'center' }}>
                                                 {socio.telefono && <span>📞 {socio.telefono}</span>}
-                                                {socio.banco && <span className="hide-mobile">🏦 {socio.banco}</span>}
+
+                                                {/* Visual Alerts */}
+                                                {socio.prestamos_activos > 0 && (
+                                                    <span style={{ background: '#fef3c7', color: '#d97706', padding: '2px 6px', borderRadius: '4px', fontSize: '0.7rem', display: 'flex', alignItems: 'center', gap: '3px' }}>
+                                                        ⚠️ Préstamo
+                                                    </span>
+                                                )}
+
+                                                {(() => {
+                                                    // Check for overdue payment (Abono)
+                                                    if (!socio.ultimo_abono) return <span title="Sin abonos registrados">🔴 Sin pagos</span>;
+
+                                                    const lastPay = new Date(socio.ultimo_abono);
+                                                    const diffDays = Math.ceil((new Date() - lastPay) / (1000 * 60 * 60 * 24));
+
+                                                    if (diffDays > 8) {
+                                                        return <span style={{ color: '#ef4444', fontWeight: 'bold' }} title={`Último pago: ${lastPay.toLocaleDateString()}`}>🔴 Atraso ({diffDays}d)</span>;
+                                                    }
+                                                    return null;
+                                                })()}
                                             </div>
                                         </td>
                                         <td className="hide-mobile" style={{ padding: '15px 20px', fontSize: '0.9rem' }}>

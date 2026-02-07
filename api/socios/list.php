@@ -15,10 +15,29 @@ try {
 
     if ($usuario_id) {
         $sql .= " WHERE u.id = ? ";
-        $stmt = $pdo->prepare($sql . " ORDER BY s.numero_socio ASC");
+        // Updated query with aggregation for status
+        $query = "
+            SELECT s.*, u.nombre_completo, u.email, u.rol, u.telefono, u.banco, u.numero_cuenta,
+            (SELECT COUNT(*) FROM prestamos p WHERE p.socio_id = s.id AND p.estado = 'pendiente') as prestamos_activos,
+            (SELECT MAX(fecha_pago) FROM abonos a WHERE a.socio_id = s.id) as ultimo_abono
+            FROM socios s 
+            JOIN usuarios u ON s.usuario_id = u.id
+            WHERE u.id = ?
+            ORDER BY s.numero_socio ASC
+        ";
+        $stmt = $pdo->prepare($query);
         $stmt->execute([$usuario_id]);
     } else {
-        $stmt = $pdo->query($sql . " ORDER BY s.numero_socio ASC");
+        // Admin View - All Socios with status
+        $query = "
+            SELECT s.*, u.nombre_completo, u.email, u.rol, u.telefono, u.banco, u.numero_cuenta,
+            (SELECT COUNT(*) FROM prestamos p WHERE p.socio_id = s.id AND p.estado = 'pendiente') as prestamos_activos,
+            (SELECT MAX(fecha_pago) FROM abonos a WHERE a.socio_id = s.id) as ultimo_abono
+            FROM socios s 
+            JOIN usuarios u ON s.usuario_id = u.id
+            ORDER BY s.numero_socio ASC
+        ";
+        $stmt = $pdo->query($query);
     }
     $socios = $stmt->fetchAll();
 
