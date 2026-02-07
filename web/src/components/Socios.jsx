@@ -255,7 +255,7 @@ const Socios = () => {
                                             <div style={{ fontWeight: '600', color: 'var(--text-main)' }}>{socio.nombre_completo}</div>
                                             <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', display: 'flex', gap: '10px', marginTop: '4px' }}>
                                                 {socio.telefono && <span>📞 {socio.telefono}</span>}
-                                                {socio.banco && <span className="hide-mobile">🏦 {socio.banco}</span>}
+                                                {socio.banco && <span className="hide-mobile ">🏦 {socio.banco}</span>}
                                             </div>
                                         </td>
                                         <td className="hide-mobile" style={{ padding: '15px 20px', fontSize: '0.9rem' }}>
