@@ -4,6 +4,8 @@ import Dashboard from './Dashboard';
 import RegistroPublico from './RegistroPublico';
 
 function App() {
+    const [user, setUser] = useState(null);
+    const [loading, setLoading] = useState(true);
     const [view, setView] = useState('login'); // 'login' | 'register'
 
     useEffect(() => {
