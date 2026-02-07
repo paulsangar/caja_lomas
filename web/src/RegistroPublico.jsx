@@ -42,6 +42,7 @@ const RegistroPublico = ({ onBack }) => {
                 background: 'white', padding: '30px', borderRadius: '16px',
                 boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)', width: '100%', maxWidth: '400px', textAlign: 'center'
             }}>
+                <img src="./logo_caja.png" alt="Logo" style={{ width: '80px', marginBottom: '15px' }} />
                 <h1 style={{ color: '#2563eb', margin: '0 0 10px 0' }}>Únete a la Caja</h1>
                 <p style={{ margin: '0 0 30px 0', color: '#64748b' }}>Completa tus datos para solicitar acceso.</p>
 

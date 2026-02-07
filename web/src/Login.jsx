@@ -50,17 +50,16 @@ const Login = ({ onLoginSuccess, onRegisterClick }) => {
                 textAlign: 'center'
             }}>
                 <div style={{
-                    background: 'var(--primary)',
-                    width: '64px',
-                    height: '64px',
+                    /* background: 'var(--primary)', Removed background to show logo transparency if any */
+                    width: '120px',
+                    height: '120px',
                     borderRadius: '16px',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                     margin: '0 auto 24px',
-                    boxShadow: '0 10px 15px -3px rgba(59, 130, 246, 0.5)'
                 }}>
-                    <ShieldCheck size={32} color="white" />
+                    <img src="./logo_caja.png" alt="Logo Caja Lomas" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
                 </div>
 
                 <h1 style={{ marginBottom: '8px', fontSize: '1.8rem' }}>Bienvenido</h1>

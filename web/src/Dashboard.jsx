@@ -203,26 +203,29 @@ const Dashboard = ({ user, onLogout }) => {
                 padding: '10px 0'
             }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <div>
-                        <h1 style={{ fontSize: '1.1rem', marginBottom: '2px' }}>{user.nombre_completo}</h1>
-                        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                            <span style={{
-                                background: '#eff6ff',
-                                color: 'var(--primary)',
-                                fontSize: '0.7rem',
-                                padding: '2px 8px',
-                                borderRadius: '12px',
-                                fontWeight: 'bold',
-                                textTransform: 'uppercase'
-                            }}>{user.rol}</span>
-                            <span style={{
-                                background: '#f0fdf4',
-                                color: '#16a34a',
-                                fontSize: '0.65rem',
-                                padding: '2px 6px',
-                                borderRadius: '8px',
-                                fontWeight: '600'
-                            }}>v5.23 • {new Date().getHours()}:{new Date().getMinutes().toString().padStart(2, '0')}</span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                        <img src="./logo_caja.png" alt="Logo" style={{ height: '48px', width: 'auto', objectFit: 'contain' }} />
+                        <div>
+                            <h1 style={{ fontSize: '1.1rem', marginBottom: '2px', lineHeight: '1.2' }}>{user.nombre_completo}</h1>
+                            <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                                <span style={{
+                                    background: '#eff6ff',
+                                    color: 'var(--primary)',
+                                    fontSize: '0.7rem',
+                                    padding: '2px 8px',
+                                    borderRadius: '12px',
+                                    fontWeight: 'bold',
+                                    textTransform: 'uppercase'
+                                }}>{user.rol}</span>
+                                <span style={{
+                                    background: '#f0fdf4',
+                                    color: '#16a34a',
+                                    fontSize: '0.65rem',
+                                    padding: '2px 6px',
+                                    borderRadius: '8px',
+                                    fontWeight: '600'
+                                }}>v5.23</span>
+                            </div>
                         </div>
                     </div>
 
