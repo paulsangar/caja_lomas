@@ -19,21 +19,20 @@ const Socios = () => {
     const [importResult, setImportResult] = useState(null);
 
     const fetchSocios = async () => {
+        console.log('Iniciando fetchSocios...');
         setLoading(true);
         setError(null);
         try {
-            // Fetch based on current ViewMode to let Server handle filtering
-            // If viewMode is 'active', ask for active. If 'pending', ask for pending.
-            // Or just fetch ALL and filter simple string matching here to avoid frequent calls?
-            // Let's stick to fetching ALL for now to be safe and robust, then filter client side simply.
-            // The previous issue was likely the JOIN in PHP failing or the u.status being null.
-            // With LEFT JOIN in PHP now, we should get data even if user status is broken.
-
+            console.log('Llamando a API...');
             const response = await fetch('./api/socios/list.php');
+            console.log('Respuesta recibida:', response.status);
+
             if (!response.ok) {
                 throw new Error(`HTTP error! Status: ${response.status}`);
             }
             const data = await response.json();
+            console.log('Datos parseados:', data);
+
             if (data.success) {
                 setSocios(data.data);
             } else {
@@ -43,6 +42,7 @@ const Socios = () => {
             console.error('Error fetching socios:', error);
             setError(error.message);
         } finally {
+            console.log('Finalizando loading...');
             setLoading(false);
         }
     };
