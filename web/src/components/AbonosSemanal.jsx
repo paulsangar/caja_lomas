@@ -452,6 +452,59 @@ const AbonosSemanal = ({ user }) => {
                                                         {socio.cupos || 1} cupos (${(socio.cupos || 1) * 100}/sem)
                                                     </span>
                                                 </div>
+                                                {(() => {
+                                                    // Check for overdue payments in the VISIBLE columns
+                                                    // This is a "what you see is what you get" alert approach
+                                                    const today = new Date();
+                                                    const currentYear = today.getFullYear();
+                                                    const currentMonth = today.getMonth();
+                                                    const currentDay = today.getDate();
+
+                                                    // Helper to approximate week end day
+                                                    const getWeekEndDay = (w) => w * 7;
+
+                                                    const hasAtraso = columnas.some(col => {
+                                                        // 1. Is this column time in the past?
+                                                        // Handle year rollover logic if needed, but for simplicity we assume viewYear matches or is close.
+                                                        // We use the 'anio' state which controls the view year.
+
+                                                        let colYear = anio;
+                                                        // If mesInicio is 11 and col.mes is 0, it's next year.
+                                                        if (mesInicio === 11 && col.mesIndex === 0) colYear++;
+                                                        // If mesInicio is 0 and col.mes is 11? Unlikely with 2 month view going fwd.
+
+                                                        if (colYear < currentYear) return true; // Past year
+                                                        if (colYear === currentYear && col.mesIndex < currentMonth) return true; // Past month
+
+                                                        if (colYear === currentYear && col.mesIndex === currentMonth) {
+                                                            // Same month, check week
+                                                            // If today is 10th (Week 2), Week 1 (Day 7) is past. Week 2 (Day 14) is pending/current.
+                                                            // So if week end day < currentDay, it's fully past.
+                                                            if (getWeekEndDay(col.semanaNum) < currentDay) return true;
+                                                        }
+
+                                                        return false;
+                                                    }) && columnas.some(col => {
+                                                        // Re-check finding the unpaid past one
+                                                        let colYear = anio;
+                                                        if (mesInicio === 11 && col.mesIndex === 0) colYear++;
+
+                                                        const isPast = (colYear < currentYear) ||
+                                                            (colYear === currentYear && col.mesIndex < currentMonth) ||
+                                                            (colYear === currentYear && col.mesIndex === currentMonth && getWeekEndDay(col.semanaNum) < currentDay);
+
+                                                        return isPast && !checkPago(socio.id, col.mesIndex, col.semanaNum);
+                                                    });
+
+                                                    if (hasAtraso) {
+                                                        return (
+                                                            <div style={{ marginTop: '5px', fontSize: '0.7rem', color: '#dc2626', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '4px', background: '#fef2f2', padding: '2px 6px', borderRadius: '4px', width: 'fit-content' }}>
+                                                                ⚠️ Pago Pendiente
+                                                            </div>
+                                                        );
+                                                    }
+                                                    return null;
+                                                })()}
                                             </td>
 
                                             {columnas.map((col, idx) => {
