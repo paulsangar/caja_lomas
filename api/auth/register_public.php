@@ -45,7 +45,7 @@ try {
     // Let's stick to reading from 'socios' table for the next ID to be safe, 
     // OR if this is a pre-registration, maybe better to NOT assign a number yet?
     // But the INSERT below puts into 'usuarios' with a 'numero_socio'.
-    
+
     // Let's use the same logic as create.php: find next available ID.
     $stmt = $pdo->query("SELECT MAX(CAST(numero_socio AS UNSIGNED)) FROM socios");
     $maxSocio = $stmt->fetchColumn();
@@ -67,7 +67,7 @@ try {
     // Insert into SOCIOS (needed for the list to see them?)
     // If we only insert into usuarios, they won't show up in the inner join of list.php!
     // We MUST insert into 'socios' as well for them to appear as 'pending'.
-    
+
     $querySocio = "INSERT INTO socios (usuario_id, numero_socio, telefono, cupos, fecha_ingreso) VALUES (?, ?, ?, 1, CURDATE())";
     $stmtSocio = $pdo->prepare($querySocio);
     $stmtSocio->execute([$usuario_id, $nextId, $telefono]);
@@ -80,12 +80,6 @@ try {
     if ($pdo->inTransaction()) {
         $pdo->rollBack();
     }
-    echo json_encode(['success' => false, 'message' => 'Error del servidor: ' . $e->getMessage()]);
-}
-
-    echo json_encode(['success' => true, 'message' => 'Solicitud enviada. Espera la confirmación del administrador.']);
-
-} catch (Exception $e) {
     echo json_encode(['success' => false, 'message' => 'Error del servidor: ' . $e->getMessage()]);
 }
 ?>

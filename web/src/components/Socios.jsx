@@ -32,6 +32,11 @@ const Socios = () => {
         }
     };
 
+    // Fetch socios on component mount
+    useEffect(() => {
+        fetchSocios();
+    }, []);
+
     // Safety timeout to prevent infinite loading
     useEffect(() => {
         const timer = setTimeout(() => {
