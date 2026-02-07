@@ -45,7 +45,7 @@ const Login = ({ onLoginSuccess, onRegisterClick }) => {
         }}>
             <div className="glass-panel animate-fade-in" style={{
                 width: '100%',
-                maxWight: '450px',
+                maxWidth: '450px',
                 padding: '40px',
                 textAlign: 'center'
             }}>

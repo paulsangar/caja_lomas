@@ -8,9 +8,9 @@ function App() {
 
     useEffect(() => {
         // Simple URL check for direct access
-        if (window.location.pathname.includes('registro')) {
-            setView('register');
-        }
+        // if (window.location.pathname.includes('registro')) {
+        //    setView('register');
+        // }
 
         const savedUser = localStorage.getItem('user');
         if (savedUser) {
