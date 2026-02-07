@@ -115,6 +115,19 @@ const Login = ({ onLoginSuccess, onRegisterClick }) => {
                 <p style={{ marginTop: '24px', fontSize: '0.85rem', color: 'var(--text-muted)' }}>
                     Sistema de Administración Segura
                 </p>
+
+                <div style={{ marginTop: '20px', borderTop: '1px solid var(--border)', paddingTop: '15px' }}>
+                    <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)', marginBottom: '10px' }}>¿No tienes cuenta?</p>
+                    <button
+                        onClick={onRegisterClick}
+                        style={{
+                            background: 'none', border: 'none', color: 'var(--primary)',
+                            fontWeight: '600', cursor: 'pointer', textDecoration: 'underline'
+                        }}
+                    >
+                        Solicitar Registro
+                    </button>
+                </div>
             </div>
         </div>
     );
