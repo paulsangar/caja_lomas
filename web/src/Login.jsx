@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Lock, User, ShieldCheck } from 'lucide-react';
 
-const Login = ({ onLoginSuccess }) => {
+const Login = ({ onLoginSuccess, onRegisterClick }) => {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [loading, setLoading] = useState(false);
