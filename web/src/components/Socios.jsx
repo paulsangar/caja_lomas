@@ -22,6 +22,13 @@ const Socios = () => {
         setLoading(true);
         setError(null);
         try {
+            // Fetch based on current ViewMode to let Server handle filtering
+            // If viewMode is 'active', ask for active. If 'pending', ask for pending.
+            // Or just fetch ALL and filter simple string matching here to avoid frequent calls?
+            // Let's stick to fetching ALL for now to be safe and robust, then filter client side simply.
+            // The previous issue was likely the JOIN in PHP failing or the u.status being null.
+            // With LEFT JOIN in PHP now, we should get data even if user status is broken.
+
             const response = await fetch('./api/socios/list.php');
             if (!response.ok) {
                 throw new Error(`HTTP error! Status: ${response.status}`);
@@ -30,7 +37,7 @@ const Socios = () => {
             if (data.success) {
                 setSocios(data.data);
             } else {
-                throw new Error(data.message || 'Error desconocido del servidor');
+                throw new Error(data.message || 'Error desconocido');
             }
         } catch (error) {
             console.error('Error fetching socios:', error);
@@ -71,13 +78,19 @@ const Socios = () => {
         return 0;
     });
 
+    // Filter Logic Simplified:
+    // If status is missing, assume 'active' to show them!
     const filteredSocios = sortedSocios.filter(s => {
         const matchesSearch = s.nombre_completo.toLowerCase().includes(searchTerm.toLowerCase()) ||
             (s.numero_socio && s.numero_socio.toString().includes(searchTerm));
 
-        const matchesStatus = viewMode === 'active'
-            ? (!s.status || s.status === 'active') // Default fallback
-            : s.status === 'pending';
+        let matchesStatus = true;
+        if (viewMode === 'active') {
+            // Show active OR those with no status (legacy/broken data)
+            matchesStatus = !s.status || s.status === 'active' || s.status === 'socio';
+        } else if (viewMode === 'pending') {
+            matchesStatus = s.status === 'pending';
+        }
 
         return matchesSearch && matchesStatus;
     });

@@ -13,31 +13,45 @@ try {
         JOIN usuarios u ON s.usuario_id = u.id 
     ";
 
+    $status = $_GET['status'] ?? null;
+
     if ($usuario_id) {
         $sql .= " WHERE u.id = ? ";
-        // Updated query with aggregation for status
+        // View for a specific user
         $query = "
             SELECT s.*, u.nombre_completo, u.email, u.rol, u.status
-            -- (SELECT COUNT(*) FROM prestamos p WHERE p.socio_id = s.id AND p.estado = 'pendiente') as prestamos_activos,
-            -- (SELECT MAX(fecha_pago) FROM abonos a WHERE a.socio_id = s.id) as ultimo_abono
             FROM socios s 
-            JOIN usuarios u ON s.usuario_id = u.id
+            LEFT JOIN usuarios u ON s.usuario_id = u.id
             WHERE u.id = ?
             ORDER BY s.numero_socio ASC
         ";
         $stmt = $pdo->prepare($query);
         $stmt->execute([$usuario_id]);
     } else {
-        // Admin View - All Socios with status
-        $query = "
+        // Admin View - All Socios
+        // If status is specific 'pending' or 'active', filter by it. 
+        // If no status param, return ALL so we don't return empty by mistake.
+
+        $sql = "
             SELECT s.*, u.nombre_completo, u.email, u.rol, u.status
-            -- (SELECT COUNT(*) FROM prestamos p WHERE p.socio_id = s.id AND p.estado = 'pendiente') as prestamos_activos,
-            -- (SELECT MAX(fecha_pago) FROM abonos a WHERE a.socio_id = s.id) as ultimo_abono
             FROM socios s 
-            JOIN usuarios u ON s.usuario_id = u.id
-            ORDER BY s.numero_socio ASC
+            LEFT JOIN usuarios u ON s.usuario_id = u.id
         ";
-        $stmt = $pdo->query($query);
+
+        $params = [];
+        if ($status) {
+            $sql .= " WHERE u.status = ? ";
+            $params[] = $status;
+        } else {
+            // Default: Show everything if no status requested, OR filter properly?
+            // User says "when I add one, they all appear". This suggests the caching or the JOIN was weird.
+            // Let's return ALL by default.
+        }
+
+        $sql .= " ORDER BY s.numero_socio ASC";
+
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute($params);
     }
     $socios = $stmt->fetchAll();
 
