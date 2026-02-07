@@ -45,7 +45,8 @@ try {
         'success' => true,
         'data' => $socios
     ]);
-} catch (PDOException $e) {
+} catch (Exception $e) {
+    file_put_contents(__DIR__ . '/error_log.txt', date('Y-m-d H:i:s') . " Error: " . $e->getMessage() . "\n" . $e->getTraceAsString() . "\n", FILE_APPEND);
     http_response_code(500);
     echo json_encode([
         'success' => false,
