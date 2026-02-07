@@ -28,6 +28,8 @@ try {
         $stmt = $pdo->prepare($query);
         $stmt->execute([$usuario_id]);
     } else {
+        // Admin View - All Socios with status
+        $query = "
             SELECT s.*, u.nombre_completo, u.email, u.rol
             -- (SELECT COUNT(*) FROM prestamos p WHERE p.socio_id = s.id AND p.estado = 'pendiente') as prestamos_activos,
             -- (SELECT MAX(fecha_pago) FROM abonos a WHERE a.socio_id = s.id) as ultimo_abono
