@@ -5,6 +5,7 @@ import SocioForm from './SocioForm';
 const Socios = () => {
     const [socios, setSocios] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
     const [showForm, setShowForm] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedSocio, setSelectedSocio] = useState(null); // Para el modal de detalles
@@ -19,14 +20,21 @@ const Socios = () => {
 
     const fetchSocios = async () => {
         setLoading(true);
+        setError(null);
         try {
             const response = await fetch('./api/socios/list.php');
+            if (!response.ok) {
+                throw new Error(`HTTP error! Status: ${response.status}`);
+            }
             const data = await response.json();
             if (data.success) {
                 setSocios(data.data);
+            } else {
+                throw new Error(data.message || 'Error desconocido del servidor');
             }
         } catch (error) {
             console.error('Error fetching socios:', error);
+            setError(error.message);
         } finally {
             setLoading(false);
         }
@@ -243,6 +251,13 @@ const Socios = () => {
                             {loading ? (
                                 <tr>
                                     <td colSpan="6" style={{ padding: '40px', textAlign: 'center' }}>Cargando socios...</td>
+                                </tr>
+                            ) : error ? (
+                                <tr>
+                                    <td colSpan="6" style={{ padding: '40px', textAlign: 'center', color: '#ef4444' }}>
+                                        Error al cargar socios: {error}<br />
+                                        <button onClick={fetchSocios} style={{ marginTop: '10px', textDecoration: 'underline', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--primary)' }}>Reintentar</button>
+                                    </td>
                                 </tr>
                             ) : filteredSocios.length === 0 ? (
                                 <tr>
