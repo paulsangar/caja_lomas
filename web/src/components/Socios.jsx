@@ -315,6 +315,10 @@ const Socios = () => {
                         <p style={{ fontSize: '0.9rem', color: '#64748b', marginBottom: '20px' }}>
                             Sube un archivo CSV con las columnas: <br />
                             <code>Nombre, Telefono, Cupos, SaldoInicial</code>
+                            <br /><br />
+                            <a href="plantilla_socios.csv" download style={{ color: '#2563eb', textDecoration: 'underline', cursor: 'pointer', fontWeight: '600' }}>
+                                ⬇️ Descargar Plantilla de Ejemplo
+                            </a>
                         </p>
 
                         <input
